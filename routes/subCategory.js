@@ -37,29 +37,65 @@ router.post("/create", async(req,res) => {
 
 // Display SubCategory
 router.get("/all", async(req,res) => {
-    try{
-
-    }catch(error){
-
-    }
+    try {
+        const subCategories = await SubCategory.find().populate('parentCategory');
+    
+        res.status(200).json({
+          success: true,
+          message: "SubCategories loaded successfully",
+          data : subCategories,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error.message,
+        });
+      }
 })
 
 // Update SubCategory
 router.put("/update/:id", async(req,res) => {
     try{
-
-    }catch(error){
-
-    }
+            const ID = req.params.id
+            const updatedField = req.body;
+            const makeUpdate = await SubCategory.findByIdAndUpdate(ID, updatedField, {new : true})
+            res.status(200).json({
+              success: true,
+              message: "SubCategory updated successfully",
+              data: makeUpdate,
+            });
+        } catch (error) {
+            res.status(500).json({
+              success: false,
+              message: error.message,
+            });
+        }
+    
 })
 
 // Delete SubCategory
 router.delete("/delete/:id", async(req,res) => {
-    try{
-
-    }catch(error){
-
+try {
+      const ID = req.params.id;
+      const deletesubCategory = await SubCategory.findByIdAndDelete(ID);
+      if (!deletesubCategory) {
+        return res.status(404).json({
+          success: false,
+          message: "SubCategory not found",
+        });
+      }
+      res.status(200).json({
+        success: true,
+        message: "SubCategory Deleted successfully",
+      });
+      
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
     }
+
 })
 
 module.exports = router;
