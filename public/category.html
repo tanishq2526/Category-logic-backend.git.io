@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Categories</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        input,
+        select,
+        button {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 150px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #eee;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Manage Categories</h1>
+
+        <!-- Category Form -->
+        <form>
+
+            <input type="text" name="name" placeholder="Enter category name" />
+
+            <input type="text" name="slug" placeholder="Enter category slug" />
+
+            <select name="status">
+                <option value="">Select Status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+
+            <button type="submit">
+                Add Category
+            </button>
+
+        </form>
+
+        <!-- Categories Table -->
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <!-- Categories will appear here -->
+            </tbody>
+
+        </table>
+
+    </div>
+
+</body>
+<script>
+
+    async function loadCategories() {
+        const res = await fetch('/api/category/all')
+        const data = await res.json()
+
+        const tbody = document.querySelector('tbody')
+        tbody.innerHTML = ''
+
+        data.data.forEach(category => {
+            const row = `<tr>
+            <td>${category.name}</td>
+            <td>${category.slug}</td>
+            <td>${category.status}</td>
+            <td><button onclick="deleteCategory('${category._id}')">Delete</td>
+            </tr>`
+            tbody.innerHTML += row
+        });
+    }
+
+    loadCategories()
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+        document.querySelector('form').addEventListener("submit", async (e) => {
+            e.preventDefault()
+
+            const name = document.querySelector('input[name="name"]').value
+            const slug = document.querySelector('input[name="slug"]').value
+            const status = document.querySelector('select[name="status"]').value
+
+            const res = await fetch('/api/category/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, slug, status })
+            })
+
+            const data = await res.json()
+
+            if (data.success) {
+                alert("Category created Successfully :)")
+                loadCategories()
+            } else {
+                alert(data.message)
+            }
+        })
+
+
+    })
+    async function deleteCategory(id) {
+        if (!confirm('Are you sure you want to delete this category?')) return
+
+        const res = await fetch(`/api/category/delete/${id}`, {
+            method: 'DELETE'
+        })
+
+        const data = await res.json()
+
+        if (data.success) {
+            alert('Category deleted successfully')
+            loadCategories()
+        } else {
+            alert(data.message)
+        }
+    }
+
+
+</script>
+
+</html>

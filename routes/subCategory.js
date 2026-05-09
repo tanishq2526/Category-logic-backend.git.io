@@ -50,7 +50,7 @@ router.get("/all", async(req,res) => {
           success: false,
           message: error.message,
         });
-      }
+      } 
 })
 
 // Update SubCategory

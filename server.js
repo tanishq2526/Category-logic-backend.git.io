@@ -13,6 +13,7 @@ connectDB();
 
 // Middleware
 app.use(express.json());
+app.use(express.static('public'))
 
 // Routes
 const categoryRoutes = require("./routes/category")
@@ -21,7 +22,7 @@ const productRoutes = require("./routes/product")
 
 app.use("/api/category", categoryRoutes)
 app.use("/api/subCategory", subCategoryRoutes)
-// app.use("/api/product", productRoutes)
+app.use("/api/product", productRoutes)
 
 // Server Start
 app.listen(port, () => {
