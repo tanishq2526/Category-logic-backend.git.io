@@ -1,11 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      font-family:Arial, sans-serif;
+      background:#f4f4f4;
+      padding:40px;
+    }
+
+    .container{
+      max-width:1300px;
+      margin:auto;
+    }
+
+    h1{
+      margin-bottom:30px;
+    }
+
+    /* NAVIGATION */
+    .nav-links{
+      display:flex;
+      gap:15px;
+      margin-bottom:30px;
+    }
+
+    .nav-links a{
+      text-decoration:none;
+      background:black;
+      color:white;
+      padding:10px 20px;
+      border-radius:5px;
+    }
+
+    /* STAT CARDS */
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:20px;
+      margin-bottom:40px;
+    }
+
+    .card{
+      background:white;
+      padding:25px;
+      border-radius:10px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .card h2{
+      font-size:20px;
+      margin-bottom:10px;
+    }
+
+    .card p{
+      font-size:28px;
+      font-weight:bold;
+    }
+
+    /* TABLE */
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:white;
+    }
+
+    table th,
+    table td{
+      border:1px solid #ccc;
+      padding:12px;
+      text-align:left;
+    }
+
+    table th{
+      background:#eee;
+    }
+
+  </style>
 </head>
+
 <body>
-    <h1>Home page</h1>
+
+  <div class="container">
+
+    <h1>Admin Dashboard</h1>
+
+    <!-- NAVIGATION -->
+    <div class="nav-links">
+
+      <a href="category.html">
+        Add Categories
+      </a>
+
+      <a href="subCategory.html">
+        Add Sub Categories
+      </a>
+
+      <a href="product.html">
+        Add Products
+      </a>
+
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats">
+
+      <div class="card">
+        <h2>Total Categories</h2>
+        <p id="totalCategories">0</p>
+      </div>
+
+      <div class="card">
+        <h2>Total SubCategories</h2>
+        <p id="totalSubCategories">0</p>
+      </div>
+
+      <div class="card">
+        <h2>Total Products</h2>
+        <p id="totalProducts">0</p>
+      </div>
+
+    </div>
+
+    <!-- PRODUCTS TABLE -->
+    <table>
+
+      <thead>
+
+        <tr>
+          <th>Parent Category</th>
+          <th>SubCategory</th>
+          <th>Product Name</th>
+          <th>Brand</th>
+          <th>Price</th>
+          <th>Discount Price</th>
+          <th>Status</th>
+        </tr>
+
+      </thead>
+
+      <tbody id="productTableBody">
+
+    </tbody>
+
+    </table>
+
+  </div>
+
+  <script>
+
+    // LOAD DASHBOARD DATA
+    async function loadDashboard() {
+
+      try {
+
+        // FETCH ALL APIs
+        const categoryResponse = await fetch("/api/category/all");
+        const subCategoryResponse = await fetch("/api/subCategory/all");
+        const productResponse = await fetch("/api/product/all");
+
+        const categoryData = await categoryResponse.json();
+        const subCategoryData = await subCategoryResponse.json();
+        const productData = await productResponse.json();
+
+        // COUNT DATA
+        document.getElementById("totalCategories").textContent =
+          categoryData.data.length;
+
+        document.getElementById("totalSubCategories").textContent =
+          subCategoryData.data.length;
+
+        document.getElementById("totalProducts").textContent =
+          productData.data.length;
+
+        // DISPLAY PRODUCTS
+        const tableBody = document.getElementById("productTableBody");
+
+        tableBody.innerHTML = "";
+
+        productData.data.forEach((product) => {
+
+          tableBody.innerHTML += `
+
+            <tr>
+
+              <td>
+                ${product.subCategory?.parentCategory?.name || "-"}
+              </td>
+
+              <td>
+                ${product.subCategory?.name || "-"}
+              </td>
+
+              <td>
+                ${product.name}
+              </td>
+
+              <td>
+                ${product.brand}
+              </td>
+
+              <td>
+                ₹${product.price}
+              </td>
+
+              <td>
+                ₹${product.discountPrice}
+              </td>
+
+              <td>
+                ${product.status}
+              </td>
+
+            </tr>
+
+          `;
+
+        });
+
+      } catch (error) {
+
+        console.log("Dashboard Error:", error);
+
+      }
+
+    }
+
+    // PAGE LOAD
+    loadDashboard();
+
+  </script>
+
 </body>
 </html>
