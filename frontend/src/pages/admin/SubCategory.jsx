@@ -1,5 +1,40 @@
 import { useState, useEffect } from "react";
 
+// Icon Components
+const EditIcon = () => (
+  <svg
+    width="22"
+    height="22"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+);
+
+const DeleteIcon = () => (
+  <svg
+    width="22"
+    height="22"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6M14 11v6" />
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+  </svg>
+);
+
 function SubCategory() {
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
@@ -13,16 +48,21 @@ function SubCategory() {
   useEffect(() =>{
     loadCategories();
     loadSubCategories();
-  },[]);
+  }, []);
+
+    const getHeaders = () => ({
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    });
 
   async function loadCategories(){
-    const res = await fetch('/api/category/all');
+    const res = await fetch('/api/category/all',{headers : getHeaders()});
     const data = await res.json();
     setCategories(data.data)
   }
 
   async function loadSubCategories() {
-    const res = await fetch('/api/subCategory/all');
+    const res = await fetch("/api/subCategory/all", { headers: getHeaders() });
     const data = await res.json();
     setSubCategories(data.data);
     // setAllSubCategories(data.data);
@@ -33,7 +73,7 @@ function SubCategory() {
     if(editingId){
       const res = await fetch(`/api/subCategory/update/${editingId}`,{
         method: "PUT",
-        headers: {"Content-Type":"application/json"},
+        headers: getHeaders(),
         body: JSON.stringify({parentCategory: selectedParent, name, slug, status})
       });
       const data = await res.json();
@@ -45,7 +85,7 @@ function SubCategory() {
     }else{
       const res = await fetch('/api/subCategory/create',{
         method : "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: getHeaders(),
         body: JSON.stringify({parentCategory: selectedParent, name, slug, status})
       })
       const data = await res.json();
@@ -72,6 +112,7 @@ function SubCategory() {
   const handleDelete = async (id)=>{
     const res = await fetch(`/api/subCategory/delete/${id}`,{
       method: "DELETE",
+      headers: getHeaders(),
     })  ;
     const data = await res.json();
     if(data.success){
@@ -130,7 +171,8 @@ function SubCategory() {
         </form>
 
         {/* Table */}
-        <table border="1" cellPadding="10">
+        <div className="table-container">
+          <table border="1" cellPadding="10">
           <thead>
             <tr>
               <th>Parent Category</th>
@@ -153,16 +195,53 @@ function SubCategory() {
                 <td>{subCategory.status}</td>
 
                 <td>
-                  <button onClick={() => handleEdit(subCategory)}>Edit</button>
-
-                  <button onClick={() => handleDelete(subCategory._id)}>
-                    Delete
-                  </button>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      onClick={() => handleEdit(subCategory)}
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        padding: "0",
+                        borderRadius: "10px",
+                        background: "#eff6ff",
+                        color: "#3b82f6",
+                        border: "1px solid #bfdbfe",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                      title="Edit"
+                    >
+                      <EditIcon />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(subCategory._id)}
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        padding: "0",
+                        borderRadius: "10px",
+                        background: "#fef2f2",
+                        color: "#ef4444",
+                        border: "1px solid #fecaca",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                      title="Delete"
+                    >
+                      <DeleteIcon />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
+        
       </div>
     </>
   );
