@@ -54,6 +54,17 @@ router.get("/all", async(req,res) => {
       } 
 })
 
+router.get("/public/all", async (req, res) => {
+  try {
+    const subCategories = await SubCategory.find({ status: "active" }).populate(
+      "parentCategory",
+    );
+    res.status(200).json({ success: true, data: subCategories });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Update SubCategory
 router.put("/update/:id", async(req,res) => {
     try{
