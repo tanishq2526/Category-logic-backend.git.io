@@ -29,14 +29,18 @@ const subCategoryRoutes = require("./routes/subCategory");
 const productRoutes = require("./routes/product");
 const cartRoutes = require("./routes/cart");
 const couponRoutes = require("./routes/coupon");
+const variantRoutes = require("./routes/variant");
+const profileRoutes = require("./routes/profile");
 
 // Use Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/category", verifyToken, categoryRoutes);
 app.use("/api/subCategory", verifyToken, subCategoryRoutes);
 app.use("/api/product", verifyToken, productRoutes);
+app.use("/api/variant", verifyToken, variantRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/coupon", verifyToken, couponRoutes);
+app.use("/api", verifyToken, profileRoutes);
 
 // Server Start
 app.listen(port, () => {

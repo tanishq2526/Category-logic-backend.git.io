@@ -4,6 +4,18 @@ const router = express.Router();
 const Coupon = require("../models/Coupon");
 const Product = require("../models/Product");
 
+const normalizeCoupon = (coupon) => {
+  const obj = coupon.toObject ? coupon.toObject() : coupon;
+
+  return {
+    ...obj,
+    couponCode: obj.code,
+    discount: obj.discountPercent,
+    products: obj.applicableProducts,
+    expires: obj.expiryDate,
+  };
+};
+
 //
 // CREATE COUPON
 //
@@ -29,7 +41,7 @@ router.post("/create", async (req, res) => {
 
     // Duplicate check
     const existingCoupon = await Coupon.findOne({
-      couponCode: couponCode.toUpperCase(),
+      code: couponCode.toUpperCase(),
     });
 
     if (existingCoupon) {
@@ -48,13 +60,13 @@ router.post("/create", async (req, res) => {
     }
 
     const coupon = new Coupon({
-      couponCode: couponCode.toUpperCase(),
-      discount,
+      code: couponCode.toUpperCase(),
+      discountPercent: discount,
       usages,
-      expires,
+      expiryDate: expires,
       status,
       type,
-      products: type === "product" ? products : [],
+      applicableProducts: type === "product" ? products : [],
     });
 
     await coupon.save();
@@ -62,7 +74,7 @@ router.post("/create", async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Coupon created successfully",
-      data: coupon,
+      data: normalizeCoupon(coupon),
     });
   } catch (error) {
     console.log(error);
@@ -80,13 +92,15 @@ router.post("/create", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const coupons = await Coupon.find()
-      .populate("products", "name price")
+      .populate("applicableProducts", "name price")
       .sort({ createdAt: -1 });
+
+    const data = coupons.map(normalizeCoupon);
 
     res.status(200).json({
       success: true,
-      count: coupons.length,
-      data: coupons,
+      count: data.length,
+      data,
     });
   } catch (error) {
     console.log(error);
@@ -104,7 +118,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const coupon = await Coupon.findById(req.params.id).populate(
-      "products",
+      "applicableProducts",
       "name price",
     );
 
@@ -117,7 +131,7 @@ router.get("/:id", async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: coupon,
+      data: normalizeCoupon(coupon),
     });
   } catch (error) {
     console.log(error);
@@ -148,7 +162,7 @@ router.put("/update/:id", async (req, res) => {
 
     // Duplicate coupon check
     const existingCoupon = await Coupon.findOne({
-      couponCode: couponCode.toUpperCase(),
+      code: couponCode.toUpperCase(),
       _id: { $ne: req.params.id },
     });
 
@@ -167,21 +181,21 @@ router.put("/update/:id", async (req, res) => {
       });
     }
 
-    coupon.couponCode = couponCode.toUpperCase();
-    coupon.discount = discount;
+    coupon.code = couponCode.toUpperCase();
+    coupon.discountPercent = discount;
     coupon.usages = usages;
-    coupon.expires = expires;
+    coupon.expiryDate = expires;
     coupon.status = status;
     coupon.type = type;
 
-    coupon.products = type === "product" ? products : [];
+    coupon.applicableProducts = type === "product" ? products : [];
 
     await coupon.save();
 
     res.status(200).json({
       success: true,
       message: "Coupon updated successfully",
-      data: coupon,
+      data: normalizeCoupon(coupon),
     });
   } catch (error) {
     console.log(error);
@@ -269,7 +283,7 @@ router.post("/apply", async (req, res) => {
     const { couponCode, cartTotal, productId } = req.body;
 
     const coupon = await Coupon.findOne({
-      couponCode: couponCode.toUpperCase(),
+      code: couponCode.toUpperCase(),
     });
 
     // Coupon not found
@@ -289,7 +303,7 @@ router.post("/apply", async (req, res) => {
     }
 
     // Expired coupon
-    if (coupon.expires && new Date(coupon.expires) < new Date()) {
+    if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
       return res.status(400).json({
         success: false,
         message: "Coupon expired",
@@ -313,7 +327,7 @@ router.post("/apply", async (req, res) => {
         });
       }
 
-      const allowed = coupon.products.some((p) => p.toString() === productId);
+      const allowed = coupon.applicableProducts.some((p) => p.toString() === productId);
 
       if (!allowed) {
         return res.status(400).json({
@@ -324,7 +338,7 @@ router.post("/apply", async (req, res) => {
     }
 
     // Discount calculation
-    const discountAmount = (cartTotal * coupon.discount) / 100;
+    const discountAmount = (cartTotal * coupon.discountPercent) / 100;
 
     const finalAmount = cartTotal - discountAmount;
 
@@ -339,7 +353,7 @@ router.post("/apply", async (req, res) => {
 
       data: {
         originalAmount: cartTotal,
-        discountPercent: coupon.discount,
+        discountPercent: coupon.discountPercent,
         discountAmount,
         finalAmount,
         couponType: coupon.type,

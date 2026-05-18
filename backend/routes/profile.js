@@ -1,27 +1,127 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
+const upload = require('../middleware/upload');
+const User = require('../models/User');
+
 const router = express.Router();
 
-router.get('/admin/profile', (req, res) => {
-  const adminProfile = req.user && req.user.role === 'admin'
-    ? {
-        id: req.user.id,
-        name: req.user.name,
-        email: req.user.email,
-        role: req.user.role
-      }
-    : null;
+router.get('/admin/profile', async (req, res) => {
+  try {
+    const admin = await User.findById(req.user.id).select('-password');
 
-  if (!adminProfile) {
-    return res.status(401).json({
+    if (!admin || admin.role !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated as admin',
+      });
+    }
+
+    res.json({
+      success: true,
+      profile: admin,
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: 'Not authenticated as admin'
+      message: error.message,
     });
   }
+});
 
-  res.json({
-    success: true,
-    profile: adminProfile
-  });
+router.put('/admin/profile', upload.single('profileImage'), async (req, res) => {
+  try {
+    const admin = await User.findById(req.user.id);
+
+    if (!admin || admin.role !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated as admin',
+      });
+    }
+
+    const {
+      name,
+      email,
+      phone,
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    } = req.body;
+
+    if (!name?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name is required',
+      });
+    }
+
+    if (!email?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required',
+      });
+    }
+
+    if (email !== admin.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is already in use',
+        });
+      }
+    }
+
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'Current password is required to change password',
+        });
+      }
+
+      const validPass = await bcrypt.compare(currentPassword, admin.password);
+      if (!validPass) {
+        return res.status(400).json({
+          success: false,
+          message: 'Current password is incorrect',
+        });
+      }
+
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'New password and confirmation do not match',
+        });
+      }
+
+      admin.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    admin.name = name.trim();
+    admin.email = email.trim().toLowerCase();
+    admin.phone = phone?.trim() || '';
+
+    if (req.file) {
+      admin.profileImage = `/uploads/${req.file.filename}`;
+    }
+
+    await admin.save();
+
+    const profile = admin.toObject();
+    delete profile.password;
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      profile,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 });
 
 module.exports = router;

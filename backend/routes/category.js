@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Category = require("../models/Category");
+const SubCategory = require("../models/SubCategory");
 
 // Create category
 router.post("/create", async (req, res) => {
@@ -57,22 +58,31 @@ router.get("/public/all", async (req, res) => {
 
 // update category
 router.put("/update/:id", async (req, res) => {
-    try{
-        const ID = req.params.id
-        const updatedField = req.body;
-        const makeUpdate = await Category.findByIdAndUpdate(ID, updatedField, {new : true})
-        res.status(200).json({
-          success: true,
-          message: "Data updated successfully",
-          data: makeUpdate,
-        });
-    } catch (error) {
-        res.status(500).json({
-          success: false,
-          message: error.message,
-        });
+  try {
+    const ID = req.params.id;
+    const updatedField = req.body;
+    const makeUpdate = await Category.findByIdAndUpdate(ID, updatedField, {
+      new: true,
+    });
+
+    if (makeUpdate?.status === "Inactive") {
+      await SubCategory.updateMany(
+        { parentCategory: ID },
+        { status: "Inactive" },
+      );
     }
 
+    res.status(200).json({
+      success: true,
+      message: "Data updated successfully",
+      data: makeUpdate,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 });
 
 // Delete category

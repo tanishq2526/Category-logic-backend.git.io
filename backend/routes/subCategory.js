@@ -16,11 +16,20 @@ router.post("/create", async(req,res) => {
                 message: "Parent category not found"
             })
         }
+
+        if (parentExists.status === "Inactive" && status === "Active") {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot activate subcategory because its parent category is inactive.",
+            });
+        }
+
+        const finalStatus = parentExists.status === "Inactive" ? "Inactive" : status;
         const subCategory = new SubCategory ({
             parentCategory,
             name,
             slug,
-            status,
+            status: finalStatus,
         });
         await subCategory.save()
         res.status(201).json({
@@ -70,7 +79,34 @@ router.put("/update/:id", async(req,res) => {
     try{
             const ID = req.params.id
             const updatedField = req.body;
-            const makeUpdate = await SubCategory.findByIdAndUpdate(ID, updatedField, {new : true})
+            const existingSubCategory = await SubCategory.findById(ID);
+            if (!existingSubCategory) {
+                return res.status(404).json({
+                    success: false,
+                    message: "SubCategory not found",
+                });
+            }
+
+            const parentId = updatedField.parentCategory || existingSubCategory.parentCategory;
+            const parentExists = await Category.findById(parentId);
+            if (!parentExists) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Parent category not found",
+                });
+            }
+
+            if (parentExists.status === "Inactive") {
+                if (updatedField.status === "Active") {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Cannot activate subcategory because its parent category is inactive.",
+                    });
+                }
+                updatedField.status = "Inactive";
+            }
+
+            const makeUpdate = await SubCategory.findByIdAndUpdate(ID, updatedField, {new : true}).populate("parentCategory")
             res.status(200).json({
               success: true,
               message: "SubCategory updated successfully",

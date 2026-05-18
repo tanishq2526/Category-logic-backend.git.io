@@ -51,28 +51,51 @@ router.post('/create',  upload.single('image'),  async (req,res) =>{
 })
 
 // Display products
-router.get("/all", async(req, res) => {
-    try{
-         const products = await Product.find().populate({
-        path : 'subCategory',
-        populate: {
-            path: 'parentCategory'
-        }
-    })
+router.get("/all", async (req, res) => {
+  try {
+    const { search, limit, page, status, subCategory } = req.query;
+    const query = {};
+
+    if (status) query.status = status;
+    if (subCategory) query.subCategory = subCategory;
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { brand: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const parsedLimit = parseInt(limit, 10) || 0;
+    const parsedPage = parseInt(page, 10) || 1;
+    const skip = parsedLimit > 0 ? (parsedPage - 1) * parsedLimit : 0;
+
+    const total = await Product.countDocuments(query);
+
+    let productsQuery = Product.find(query)
+      .populate({
+        path: "subCategory",
+        populate: { path: "parentCategory" },
+      });
+
+    if (parsedLimit > 0) {
+      productsQuery = productsQuery.skip(skip).limit(parsedLimit);
+    }
+
+    const products = await productsQuery;
 
     res.status(200).json({
-        success: true,
-        message: "Displaying all products",
-        data: products,
-    })
-    }catch(error){
-        res.status(500).json({
-            success : false,
-            message: error.message,
-        })
-    };
-   
-}); 
+      success: true,
+      message: "Displaying products",
+      data: products,
+      total,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 
 // Public route — no auth needed
 router.get('/public/all', async (req, res) => {
