@@ -9,7 +9,7 @@ import SubCategory from "./pages/admin/SubCategory";
 import Product from "./pages/admin/Product";
 import VariantProducts from "./pages/admin/VariantProducts";
 import Coupons from "./pages/admin/Coupons";
-// import UserProfile from "./pages/admin/UserProfile";
+import Profile from "./pages/admin/Profile";
 // import Orders from "./pages/admin/Orders";
 import Login from "./pages/Login";
 
@@ -103,7 +103,7 @@ function App() {
           path="/admin/profile"
           element={
             <AdminLayout>
-              {/* <UserProfile /> */}
+              <Profile />
             </AdminLayout>
           }
         />

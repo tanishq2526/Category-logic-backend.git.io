@@ -98,13 +98,19 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 40px ;
+    height: 40px ;
+    padding: 0;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
     font-family: 'Segoe UI', sans-serif;
+}
+
+.btn-icon-action svg {
+    width: 35px;
+    height: 35px;
 }
 
 .btn-edit-icon {
@@ -129,7 +135,7 @@
 
 .pm-action-cell {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
 }
 

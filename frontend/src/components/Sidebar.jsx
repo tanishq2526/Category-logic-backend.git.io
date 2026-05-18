@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 // Icon Components
 const DashboardIcon = () => (
@@ -53,8 +53,23 @@ const ProfileIcon = () => (
   </svg>
 );
 
+const LogoutIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+    <polyline points="16 17 21 12 16 7"></polyline>
+    <line x1="21" y1="12" x2="9" y2="12"></line>
+  </svg>
+);
+
 function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   const menuItems = [
     { path: "/admin/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
@@ -77,32 +92,57 @@ function Sidebar() {
         position: "fixed",
         left: 0,
         top: 0,
-        overflowY: "auto",
+        overflowY: "hidden",
       }}
     >
       <h2 style={{ marginBottom: "20px", color: "#fff" }}>Admin Panel</h2>
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {menuItems.map((item) => (
-          <li key={item.path} style={{ marginBottom: "10px" }}>
-            <Link
-              to={item.path}
-              style={{
-                color: location.pathname === item.path ? "#4CAF50" : "#ccc",
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "10px",
-                borderRadius: "4px",
-                backgroundColor: location.pathname === item.path ? "#333" : "transparent",
-              }}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <ul style={{ listStyle: "none", padding: 0, flex: 1 }}>
+          {menuItems.map((item) => (
+            <li key={item.path} style={{ marginBottom: "10px" }}>
+              <Link
+                to={item.path}
+                style={{
+                  color: location.pathname === item.path ? "#4CAF50" : "#ccc",
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "10px",
+                  borderRadius: "4px",
+                  backgroundColor: location.pathname === item.path ? "#333" : "transparent",
+                }}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            </li>
+          ))}
+          <button
+          onClick={handleLogout}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+            marginTop: "auto",
+            padding: "12px 14px",
+            border: "none",
+            borderRadius: "8px",
+            backgroundColor: "#e94560",
+            color: "white",
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
+          <LogoutIcon />
+          Logout
+        </button>
+        </ul>
+
+        
+      </div>
     </div>
   );
 }

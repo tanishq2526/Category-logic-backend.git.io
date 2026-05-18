@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const API = {
   coupons: "/api/coupon",
   create: "/api/coupon/create",
   update: (id) => `/api/coupon/update/${id}`,
-  delete: (id) => `/api/coupons/delete/${id}`,
+  delete: (id) => `/api/coupon/delete/${id}`,
   products: "/api/product/all",
 };
 
@@ -147,6 +147,45 @@ const styles = {
     overflowY: "auto",
   },
 
+  productDropdown: {
+    position: "absolute",
+    top: "48px",
+    left: 0,
+    right: 0,
+    background: "white",
+    border: "1px solid #cbd5e1",
+    borderRadius: "12px",
+    boxShadow: "0 6px 16px rgba(15, 23, 42, 0.08)",
+    zIndex: 10,
+    maxHeight: "280px",
+    overflowY: "auto",
+    padding: "8px 0",
+  },
+
+  dropdownItem: {
+    width: "100%",
+    padding: "12px 16px",
+    border: "none",
+    background: "transparent",
+    textAlign: "left",
+    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px",
+  },
+
+  dropdownProductMeta: {
+    margin: 0,
+    fontSize: "13px",
+    color: "#64748b",
+  },
+
+  dropdownMessage: {
+    padding: "12px 16px",
+    color: "#64748b",
+    fontSize: "14px",
+  },
+
   formGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
@@ -183,18 +222,63 @@ export default function Coupon() {
   const [saving, setSaving] = useState(false);
 
   const [products, setProducts] = useState([]);
+  const [productPage, setProductPage] = useState(1);
+  const [hasMoreProducts, setHasMoreProducts] = useState(false);
+  const token = localStorage.getItem("token");
   const [productSearch, setProductSearch] = useState("");
   const [productLoading, setProductLoading] = useState(false);
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
 
   useEffect(() => {
     fetchCoupons();
   }, []);
 
+  const fetchProducts = useCallback(
+    async (page = 1, append = false) => {
+      try {
+        setProductLoading(true);
+
+        const query = new URLSearchParams({
+          limit: 5,
+          page,
+          search: productSearch,
+        });
+
+        const res = await fetch(`${API.products}?${query}`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        const data = await res.json();
+
+        const newProducts = data?.data || [];
+
+        setProducts((prev) =>
+          append ? [...prev, ...newProducts] : newProducts,
+        );
+        setProductPage(page);
+        setHasMoreProducts(
+          Boolean(data?.total) && page * 5 < data.total,
+        );
+        setShowProductDropdown(true);
+      } catch (error) {
+        console.error("Failed to fetch products", error);
+      } finally {
+        setProductLoading(false);
+      }
+    },
+    [productSearch, token],
+  );
+
   useEffect(() => {
-    if (showModal && form.type === "product") {
-      fetchProducts();
-    }
-  }, [showModal, form.type, productSearch]);
+    const loadProducts = async () => {
+      if (showModal && form.type === "product") {
+        await fetchProducts(1, false);
+      }
+    };
+
+    loadProducts();
+  }, [productSearch, showModal, form.type, fetchProducts]);
 
   async function fetchCoupons() {
     try {
@@ -213,26 +297,6 @@ export default function Coupon() {
       console.error("Failed to fetch coupons", error);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function fetchProducts() {
-    try {
-      setProductLoading(true);
-
-      const query = new URLSearchParams({
-        limit: 10,
-        search: productSearch,
-      });
-
-      const res = await fetch(`${API.products}?${query}`);
-      const data = await res.json();
-
-      setProducts(data?.data || []);
-    } catch (error) {
-      console.error("Failed to fetch products", error);
-    } finally {
-      setProductLoading(false);
     }
   }
 
@@ -290,7 +354,7 @@ export default function Coupon() {
         type: form.type,
         products:
           form.type === "product"
-            ? form.selectedProducts
+            ? form.selectedProducts.map((product) => product._id)
             : [],
       };
 
@@ -304,6 +368,7 @@ export default function Coupon() {
         method,
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(payload),
       });
@@ -334,6 +399,9 @@ export default function Coupon() {
     try {
       const res = await fetch(API.delete(id), {
         method: "DELETE",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
 
       if (!res.ok) {
@@ -772,80 +840,153 @@ export default function Coupon() {
                       Select Products
                     </h3>
 
-                    <input
+                    <div style={{ position: "relative" }}>
+                      <input
+                        style={{
+                          ...styles.input,
+                          width: "260px",
+                        }}
+                        value={productSearch}
+                        onChange={(e) => {
+                          setProductSearch(e.target.value);
+                          setShowProductDropdown(true);
+                        }}
+                        onFocus={() => setShowProductDropdown(true)}
+                        placeholder="Search product from database"
+                      />
+
+                      {showProductDropdown && (
+                        <div style={styles.productDropdown}>
+                          {productLoading ? (
+                            <div style={styles.dropdownMessage}>Searching...</div>
+                          ) : products.length === 0 ? (
+                            <div style={styles.dropdownMessage}>
+                              No products found.
+                            </div>
+                          ) : (
+                            <>
+                              {products.map((product) => {
+                                const selected = form.selectedProducts.some(
+                                  (p) => p._id === product._id,
+                                );
+                                return (
+                                  <button
+                                    key={product._id}
+                                    type="button"
+                                    onClick={() => {
+                                      toggleProduct(product);
+                                      setShowProductDropdown(false);
+                                      setProductSearch("");
+                                    }}
+                                    style={{
+                                      ...styles.dropdownItem,
+                                      background: selected ? "#eef2ff" : "white",
+                                    }}
+                                  >
+                                    <div>
+                                      <strong>{product.name}</strong>
+                                      <p style={styles.dropdownProductMeta}>
+                                        ₹{product.price}
+                                      </p>
+                                    </div>
+                                  </button>
+                                );
+                              })}
+
+                              {hasMoreProducts && (
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    await fetchProducts(productPage + 1, true);
+                                  }}
+                                  style={{
+                                    width: "100%",
+                                    border: "none",
+                                    background: "#f8fafc",
+                                    color: "#334155",
+                                    padding: "12px 16px",
+                                    cursor: "pointer",
+                                    borderTop: "1px solid #e2e8f0",
+                                    borderRadius: "0 0 12px 12px",
+                                    textAlign: "center",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  {productLoading
+                                    ? "Loading more..."
+                                    : "Load more products"}
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {!showProductDropdown && (
+                    <div
                       style={{
-                        ...styles.input,
-                        width: "260px",
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fill,minmax(220px,1fr))",
+                        gap: "12px",
                       }}
-                      value={productSearch}
-                      onChange={(e) =>
-                        setProductSearch(e.target.value)
-                      }
-                      placeholder="Search product from database"
-                    />
-                  </div>
+                    >
+                      {productLoading ? (
+                        <p>Loading products...</p>
+                      ) : products.length === 0 ? (
+                        <p>No products found.</p>
+                      ) : (
+                        products.map((product) => {
+                          const selected =
+                            form.selectedProducts.some(
+                              (p) => p._id === product._id
+                            );
 
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fill,minmax(220px,1fr))",
-                      gap: "12px",
-                    }}
-                  >
-                    {productLoading ? (
-                      <p>Loading products...</p>
-                    ) : products.length === 0 ? (
-                      <p>No products found.</p>
-                    ) : (
-                      products.map((product) => {
-                        const selected =
-                          form.selectedProducts.some(
-                            (p) => p._id === product._id
+                          return (
+                            <div
+                              key={product._id}
+                              onClick={() => toggleProduct(product)}
+                              style={{
+                                border: selected
+                                  ? "2px solid #6366f1"
+                                  : "1px solid #e2e8f0",
+                                borderRadius: "12px",
+                                padding: "14px",
+                                cursor: "pointer",
+                                background: selected
+                                  ? "#eef2ff"
+                                  : "white",
+                                transition: "0.2s",
+                              }}
+                            >
+                              <h4
+                                style={{
+                                  margin: 0,
+                                  fontSize: "15px",
+                                  color: "#0f172a",
+                                }}
+                              >
+                                {product.name}
+                              </h4>
+
+                              <p
+                                style={{
+                                  marginTop: "8px",
+                                  marginBottom: 0,
+                                  fontSize: "13px",
+                                  color: "#64748b",
+                                }}
+                              >
+                                ₹{product.price}
+                              </p>
+                            </div>
                           );
-
-                        return (
-                          <div
-                            key={product._id}
-                            onClick={() => toggleProduct(product)}
-                            style={{
-                              border: selected
-                                ? "2px solid #6366f1"
-                                : "1px solid #e2e8f0",
-                              borderRadius: "12px",
-                              padding: "14px",
-                              cursor: "pointer",
-                              background: selected
-                                ? "#eef2ff"
-                                : "white",
-                              transition: "0.2s",
-                            }}
-                          >
-                            <h4
-                              style={{
-                                margin: 0,
-                                fontSize: "15px",
-                                color: "#0f172a",
-                              }}
-                            >
-                              {product.name}
-                            </h4>
-
-                            <p
-                              style={{
-                                marginTop: "8px",
-                                marginBottom: 0,
-                                fontSize: "13px",
-                                color: "#64748b",
-                              }}
-                            >
-                              ₹{product.price}
-                            </p>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
+                        })
+                      )}
+                    </div>
+                  )}
 
                   {form.selectedProducts.length > 0 && (
                     <div style={{ marginTop: "18px" }}>

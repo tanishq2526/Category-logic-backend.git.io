@@ -4,8 +4,8 @@ import "./Product.css";
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const EditIcon = () => (
   <svg
-    width="15"
-    height="15"
+    width="20"
+    height="20"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -20,8 +20,8 @@ const EditIcon = () => (
 
 const DeleteIcon = () => (
   <svg
-    width="15"
-    height="15"
+    width="20"
+    height="20"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"

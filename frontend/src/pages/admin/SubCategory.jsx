@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
-// Icon Components
 const EditIcon = () => (
   <svg
-    width="22"
-    height="22"
+    width="18"
+    height="18"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -19,8 +18,8 @@ const EditIcon = () => (
 
 const DeleteIcon = () => (
   <svg
-    width="22"
-    height="22"
+    width="18"
+    height="18"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -35,202 +34,357 @@ const DeleteIcon = () => (
   </svg>
 );
 
-function SubCategory() {
+const PlusIcon = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+);
+
+function Modal({ title, onClose, children }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(15, 23, 42, 0.55)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 999,
+        padding: "24px",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "520px",
+          background: "#fff",
+          borderRadius: "20px",
+          padding: "24px",
+          boxShadow: "0 24px 48px rgba(15, 23, 42, 0.15)",
+          position: "relative",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+          <h2 style={{ margin: 0, fontSize: "20px", fontWeight: 700, color: "#0f172a" }}>{title}</h2>
+          <button
+            onClick={onClose}
+            style={{
+              border: "none",
+              background: "transparent",
+              fontSize: "24px",
+              cursor: "pointer",
+              color: "#64748b",
+              lineHeight: 1,
+            }}
+            aria-label="Close modal"
+          >
+            ×
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export default function SubCategory() {
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
-  const [selectedParent, setSelectedParent] = useState("");
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [status, setStatus] = useState("active");
-  let [editingId, setEditingId] = useState(null);
-  // const [allSubCategories, setAllSubCategories] = useState([])
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterParent, setFilterParent] = useState("all");
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [form, setForm] = useState({
+    parentCategory: "",
+    name: "",
+    slug: "",
+    status: "Active",
+  });
 
-  useEffect(() =>{
-    loadCategories();
-    loadSubCategories();
+  const getEffectiveSubStatus = (sub) =>
+    sub.parentCategory?.status === "Inactive"
+      ? "Inactive"
+      : sub.status;
+
+  const getHeaders = () => ({
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    "Content-Type": "application/json",
+  });
+
+  const loadCategories = useCallback(async () => {
+    const res = await fetch("/api/category/all", { headers: getHeaders() });
+    const data = await res.json();
+    setCategories(data.data || []);
   }, []);
 
-    const getHeaders = () => ({
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-      "Content-Type": "application/json",
-    });
-
-  async function loadCategories(){
-    const res = await fetch('/api/category/all',{headers : getHeaders()});
-    const data = await res.json();
-    setCategories(data.data)
-  }
-
-  async function loadSubCategories() {
+  const loadSubCategories = useCallback(async () => {
     const res = await fetch("/api/subCategory/all", { headers: getHeaders() });
     const data = await res.json();
-    setSubCategories(data.data);
-    // setAllSubCategories(data.data);
-  }
+    setSubCategories(data.data || []);
+  }, []);
 
-  const handleSubmit = async(e) => {
+  useEffect(() => {
+    const init = async () => {
+      await loadCategories();
+      await loadSubCategories();
+    };
+
+    init();
+  }, [loadCategories, loadSubCategories]);
+
+  const parentCategoryNote = categories.find((cat) => cat._id === form.parentCategory)?.status === "Inactive"
+    ? "Selected parent category is inactive. This subcategory cannot be active."
+    : "";
+
+  const stats = useMemo(() => ({
+    total: subCategories.length,
+    active: subCategories.filter((sub) => getEffectiveSubStatus(sub) === "Active").length,
+    inactive: subCategories.filter((sub) => getEffectiveSubStatus(sub) === "Inactive").length,
+  }), [subCategories]);
+
+  const filteredSubCategories = useMemo(() => {
+    return subCategories.filter((sub) => {
+      const searchValue = search.trim().toLowerCase();
+      const matchesSearch =
+        !searchValue ||
+        sub.name?.toLowerCase().includes(searchValue) ||
+        sub.slug?.toLowerCase().includes(searchValue) ||
+        sub.parentCategory?.name?.toLowerCase().includes(searchValue);
+
+      const effectiveStatus = getEffectiveSubStatus(sub);
+      const matchesStatus =
+        filterStatus === "all" || effectiveStatus?.toLowerCase() === filterStatus;
+
+      const matchesParent =
+        filterParent === "all" || sub.parentCategory?._id === filterParent;
+
+      return matchesSearch && matchesStatus && matchesParent;
+    });
+  }, [subCategories, search, filterStatus, filterParent]);
+
+  const openCreateModal = () => {
+    setEditingId(null);
+    setForm({ parentCategory: "", name: "", slug: "", status: "Active" });
+    setShowModal(true);
+  };
+
+  const openEditModal = (sub) => {
+    setEditingId(sub._id);
+    setForm({
+      parentCategory: sub.parentCategory?._id || "",
+      name: sub.name || "",
+      slug: sub.slug || "",
+      status: sub.status || "Active",
+    });
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+  };
+
+  const handleChange = (key, value) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const resetForm = () => {
+    setForm({ parentCategory: "", name: "", slug: "", status: "Active" });
+    setEditingId(null);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if(editingId){
-      const res = await fetch(`/api/subCategory/update/${editingId}`,{
-        method: "PUT",
-        headers: getHeaders(),
-        body: JSON.stringify({parentCategory: selectedParent, name, slug, status})
-      });
-      const data = await res.json();
-      if(data.success){
-        alert("Category updated successfully :)");
-        loadSubCategories();
-        setEditingId(null)
-      }
-    }else{
-      const res = await fetch('/api/subCategory/create',{
-        method : "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({parentCategory: selectedParent, name, slug, status})
-      })
-      const data = await res.json();
-      if(data.success){
-        loadSubCategories();
-        setSelectedParent("")
-        setName("");
-        setSlug("");
-        setStatus("Active");
-      }else{
-        alert(data.message);
-      }
+    if (!form.parentCategory) return alert("Please select a parent category.");
+    if (!form.name.trim()) return alert("Subcategory name is required.");
+    if (!form.slug.trim()) return alert("Slug is required.");
+
+    setIsSaving(true);
+
+    const category = categories.find((cat) => cat._id === form.parentCategory);
+
+    if (category?.status === "Inactive" && form.status === "Active") {
+      alert(
+        "Cannot activate subcategory because its parent category is inactive.",
+      );
+      setIsSaving(false);
+      return;
+    }
+
+    const payload = {
+      parentCategory: form.parentCategory,
+      name: form.name,
+      slug: form.slug,
+      status: category?.status === "Inactive" ? "Inactive" : form.status,
+    };
+
+    const url = editingId
+      ? `/api/subCategory/update/${editingId}`
+      : "/api/subCategory/create";
+    const method = editingId ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method,
+      headers: getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    setIsSaving(false);
+
+    if (data.success) {
+      loadSubCategories();
+      resetForm();
+      closeModal();
+    } else {
+      alert(data.message || "Unable to save subcategory.");
     }
   };
 
-  const handleEdit = (sub) =>{
-    setEditingId(sub._id);
-    setSelectedParent(sub.parentCategory._id);
-    setName(sub.name);
-    setSlug(sub.slug);
-    setStatus(sub.status);
-  }
-
-  const handleDelete = async (id)=>{
-    const res = await fetch(`/api/subCategory/delete/${id}`,{
+  const handleDelete = async (id) => {
+    if (!confirm("Delete this subcategory?")) return;
+    const res = await fetch(`/api/subCategory/delete/${id}`, {
       method: "DELETE",
       headers: getHeaders(),
-    })  ;
+    });
     const data = await res.json();
-    if(data.success){
+    if (data.success) {
       loadSubCategories();
+    } else {
+      alert(data.message || "Unable to delete subcategory.");
     }
   };
 
-
-
   return (
-    <>
-        <div className="container">
-        <h1>Manage Sub Categories</h1>
+    <div style={{ fontFamily: "'Inter',sans-serif", padding: "24px", color: "#0f172a" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');`}</style>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          {/* Parent Category */}
-          <select
-            value={selectedParent}
-            onChange={(e) => setSelectedParent(e.target.value)}
-          >
-            <option value="">Select Parent Category</option>
-
-            {categories.map((category) => (
-              <option key={category._id} value={category._id}>
-                {category.name}
-              </option>
+      <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "18px", marginBottom: "22px" }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: "28px", fontWeight: 700 }}>Sub Categories</h1>
+          <p style={{ margin: "8px 0 0", color: "#64748b" }}>Search, filter and manage all subcategories.</p>
+          <div style={{ display: "flex", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
+            {[
+              ["Total", stats.total, "#4338ca"],
+              ["Active", stats.active, "#16a34a"],
+              ["Inactive", stats.inactive, "#dc2626"],
+            ].map(([label, value, color]) => (
+              <div key={label} style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: "14px", minWidth: "120px", border: `1px solid ${color}22` }}>
+                <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>{label}</p>
+                <p style={{ margin: "4px 0 0", fontSize: "18px", fontWeight: 700, color }}>{value}</p>
+              </div>
             ))}
-          </select>
+          </div>
+        </div>
+        <button
+          onClick={openCreateModal}
+          style={{
+            maxHeight: "50px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "10px",
+            background: "#2563eb",
+            color: "#fff",
+            border: "none",
+            borderRadius: "99px",
+            padding: "2px 8px",
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          <PlusIcon />
+          Create Subcategory
+        </button>
+      </div>
 
-          {/* Sub Category Name */}
-          <input
-            type="text"
-            placeholder="Enter sub category name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+      <div style={{ display: "grid", gap: "14px", marginBottom: "20px", gridTemplateColumns: "1fr auto auto" }}>
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search subcategories..."
+          style={{ width: "100%", minWidth: "220px", padding: "12px 14px", borderRadius: "14px", border: "1px solid #cbd5e1", outline: "none", fontSize: "14px" }}
+        />
+        <select
+          value={filterStatus}
+          onChange={(event) => setFilterStatus(event.target.value)}
+          style={{ padding: "12px 14px", borderRadius: "14px", border: "1px solid #cbd5e1", fontSize: "14px", minWidth: "160px" }}
+        >
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <select
+          value={filterParent}
+          onChange={(event) => setFilterParent(event.target.value)}
+          style={{ padding: "12px 14px", borderRadius: "14px", border: "1px solid #cbd5e1", fontSize: "14px", minWidth: "160px" }}
+        >
+          <option value="all">All Parent Categories</option>
+          {categories.map((category) => (
+            <option key={category._id} value={category._id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
-          {/* Slug */}
-          <input
-            type="text"
-            placeholder="Enter slug"
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-          />
-
-          {/* Status */}
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="">Select Status</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-
-          {/* Submit */}
-          <button type="submit">Add Sub Category</button>
-        </form>
-
-        {/* Table */}
-        <div className="table-container">
-          <table border="1" cellPadding="10">
+      <div style={{ overflowX: "auto", background: "#fff", borderRadius: "20px", border: "1px solid #e2e8f0", padding: "1px" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "780px" }}>
           <thead>
-            <tr>
-              <th>Parent Category</th>
-              <th>Name</th>
-              <th>Slug</th>
-              <th>Status</th>
-              <th>Actions</th>
+            <tr style={{ background: "#f8fafc" }}>
+              <th style={headerCellStyle}>Parent Category</th>
+              <th style={headerCellStyle}>Subcategory</th>
+              <th style={headerCellStyle}>Slug</th>
+              <th style={headerCellStyle}>Status</th>
+              <th style={headerCellStyle}>Actions</th>
             </tr>
           </thead>
-
           <tbody>
-            {subCategories.map((subCategory) => (
-              <tr key={subCategory._id}>
-                <td>{subCategory.parentCategory?.name}</td>
-
-                <td>{subCategory.name}</td>
-
-                <td>{subCategory.slug}</td>
-
-                <td>{subCategory.status}</td>
-
-                <td>
-                  <div style={{ display: "flex", gap: "8px" }}>
+            {filteredSubCategories.map((subCategory) => (
+              <tr key={subCategory._id} style={{ borderTop: "1px solid #e2e8f0" }}>
+                <td style={bodyCellStyle}>{subCategory.parentCategory?.name || "—"}</td>
+                <td style={bodyCellStyle}>{subCategory.name}</td>
+                <td style={bodyCellStyle}>{subCategory.slug}</td>
+                <td style={bodyCellStyle}>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "6px 12px",
+                      borderRadius: "999px",
+                      background: getEffectiveSubStatus(subCategory) === "Active" ? "#d1fae5" : "#fee2e2",
+                      color: getEffectiveSubStatus(subCategory) === "Active" ? "#065f46" : "#991b1b",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {getEffectiveSubStatus(subCategory)}
+                  </span>
+                </td>
+                <td style={bodyCellStyle}>
+                  <div style={{ display: "flex", gap: "10px" }}>
                     <button
-                      onClick={() => handleEdit(subCategory)}
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        padding: "0",
-                        borderRadius: "10px",
-                        background: "#eff6ff",
-                        color: "#3b82f6",
-                        border: "1px solid #bfdbfe",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
+                      onClick={() => openEditModal(subCategory)}
                       title="Edit"
+                      style={actionButtonStyleBlue}
                     >
                       <EditIcon />
                     </button>
                     <button
                       onClick={() => handleDelete(subCategory._id)}
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        padding: "0",
-                        borderRadius: "10px",
-                        background: "#fef2f2",
-                        color: "#ef4444",
-                        border: "1px solid #fecaca",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
                       title="Delete"
+                      style={actionButtonStyleRed}
                     >
                       <DeleteIcon />
                     </button>
@@ -238,13 +392,170 @@ function SubCategory() {
                 </td>
               </tr>
             ))}
+            {filteredSubCategories.length === 0 && (
+              <tr>
+                <td colSpan="5" style={{ padding: "24px", textAlign: "center", color: "#64748b" }}>
+                  No subcategories found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
-        </div>
-        
       </div>
-    </>
+
+      {showModal && (
+        <Modal title={editingId ? "Update Subcategory" : "Create Subcategory"} onClose={closeModal}>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: "grid", gap: "14px" }}>
+              <label style={labelStyle}>
+                Parent Category
+                <select
+                  value={form.parentCategory}
+                  onChange={(event) => handleChange("parentCategory", event.target.value)}
+                  style={inputStyle}
+                >
+                  <option value="">Select parent category</option>
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={labelStyle}>
+                Subcategory Name
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(event) => handleChange("name", event.target.value)}
+                  style={inputStyle}
+                  placeholder="Enter subcategory name"
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Slug
+                <input
+                  type="text"
+                  value={form.slug}
+                  onChange={(event) => handleChange("slug", event.target.value)}
+                  style={inputStyle}
+                  placeholder="Enter slug"
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Status
+                <select
+                  value={form.status}
+                  onChange={(event) => handleChange("status", event.target.value)}
+                  style={inputStyle}
+                >
+                  <option value="Active" disabled={
+                    categories.find((cat) => cat._id === form.parentCategory)
+                      ?.status === "Inactive"
+                  }>
+                    Active
+                  </option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </label>
+
+              {parentCategoryNote && (
+                <p style={{ margin: 0, color: "#b91c1c", fontSize: "13px" }}>{parentCategoryNote}</p>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "6px" }}>
+                <button type="button" onClick={closeModal} style={cancelButtonStyle}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={isSaving} style={submitButtonStyle}>
+                  {isSaving ? "Saving..." : editingId ? "Update" : "Create"}
+                </button>
+              </div>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </div>
   );
 }
 
-export default SubCategory;
+const headerCellStyle = {
+  textAlign: "left",
+  padding: "16px 18px",
+  fontSize: "14px",
+  color: "#475569",
+  whiteSpace: "nowrap",
+};
+
+const bodyCellStyle = {
+  padding: "16px 18px",
+  fontSize: "14px",
+  color: "#0f172a",
+  verticalAlign: "middle",
+};
+
+const inputStyle = {
+  width: "100%",
+  padding: "12px 14px",
+  borderRadius: "14px",
+  border: "1px solid #cbd5e1",
+  outline: "none",
+  fontSize: "14px",
+  marginTop: "8px",
+};
+
+const labelStyle = {
+  display: "block",
+  fontSize: "14px",
+  color: "#475569",
+  fontWeight: 500,
+};
+
+const actionButtonStyleBlue = {
+  width: "42px",
+  height: "42px",
+  borderRadius: "12px",
+  border: "1px solid #bfdbfe",
+  background: "#eff6ff",
+  color: "#1d4ed8",
+  cursor: "pointer",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const actionButtonStyleRed = {
+  width: "42px",
+  height: "42px",
+  borderRadius: "12px",
+  border: "1px solid #fecaca",
+  background: "#fef2f2",
+  color: "#dc2626",
+  cursor: "pointer",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const cancelButtonStyle = {
+  border: "1px solid #cbd5e1",
+  background: "#fff",
+  color: "#475569",
+  padding: "12px 18px",
+  borderRadius: "14px",
+  cursor: "pointer",
+  fontWeight: 600,
+};
+
+const submitButtonStyle = {
+  border: "none",
+  background: "#2563eb",
+  color: "#fff",
+  padding: "12px 18px",
+  borderRadius: "14px",
+  cursor: "pointer",
+  fontWeight: 700,
+};
