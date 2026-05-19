@@ -7,9 +7,25 @@ const ProductSchema = new mongoose.Schema(
       required: true,
       ref: "SubCategory",
     },
-    image:{
+    image: {
       type: String,
-      default: null
+      default: null, // Main Hero Image
+    },
+    image1: {
+      type: String,
+      default: null, // Carousel 1
+    },
+    image2: {
+      type: String,
+      default: null, // Carousel 2
+    },
+    image3: {
+      type: String,
+      default: null, // Carousel 3
+    },
+    image4: {
+      type: String,
+      default: null, // Carousel 4
     },
     name: {
       type: String,

@@ -31,6 +31,7 @@ const cartRoutes = require("./routes/cart");
 const couponRoutes = require("./routes/coupon");
 const variantRoutes = require("./routes/variant");
 const profileRoutes = require("./routes/profile");
+const giftCardRoutes = require("./routes/giftCard");
 
 // Use Routes
 app.use("/api/auth", authRoutes);
@@ -41,6 +42,7 @@ app.use("/api/variant", verifyToken, variantRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/coupon", verifyToken, couponRoutes);
 app.use("/api", verifyToken, profileRoutes);
+app.use("/api/giftCard", verifyToken, giftCardRoutes);
 
 // Server Start
 app.listen(port, () => {

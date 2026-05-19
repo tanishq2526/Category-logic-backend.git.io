@@ -524,3 +524,120 @@
     color: #e53e3e;
     margin-top: 2px;
 }
+
+/* =====================================================
+   Product.css — Append these rules to your existing file
+   ===================================================== */
+
+/* ── Image Blueprint Grid ── */
+/* ── Image Blueprint Grid (Updated for strict sizing & row alignment) ── */
+.pm-image-blueprint {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+/* Base box styling */
+.pm-img-upload {
+    border: 2px dashed #cbd5e0;
+    border-radius: 10px;
+    background: #f8fafc;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    /* Overrides the old 20px padding which breaks layouts */
+    transition: border 0.2s, background 0.2s;
+}
+
+.pm-img-upload:hover {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.03);
+}
+
+.pm-img-upload input {
+    display: none;
+}
+
+/* 1. Hero Image - Fixed Height */
+.pm-img-hero {
+    width: 100%;
+    height: 180px;
+}
+
+/* 2. Carousel Grid - Forces a strict horizontal row */
+.pm-carousel-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    width: 100%;
+}
+
+/* 3. Carousel Boxes - Fixed Height */
+.pm-img-carousel {
+    width: 100%;
+    height: 90px;
+}
+
+/* 4. The Image Itself - Prevents stretching */
+.pm-img-preview-full {
+    position: absolute;
+    /* Removes the image from document flow so it can't stretch the parent */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Crops the image to fit the box without distorting it */
+}
+
+/* Styling the placeholder text/icons */
+.pm-img-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #a0aec0;
+    gap: 6px;
+    padding: 10px;
+    text-align: center;
+}
+
+.pm-img-upload-text {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Remove button */
+.btn-remove-img {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: rgba(229, 62, 62, 0.9);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: background 0.2s;
+    z-index: 10;
+}
+
+.btn-remove-img:hover {
+    background: #c53030;
+}
+
+.btn-remove-img svg {
+    width: 14px;
+    height: 14px;
+}
