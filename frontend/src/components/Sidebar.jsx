@@ -46,6 +46,17 @@ const CouponIcon = () => (
   </svg>
 );
 
+const GiftCardIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+    <rect x="7" y="7" width="10" height="10"></rect>
+    <line x1="12" y1="7" x2="12" y2="3"></line>
+    <line x1="12" y1="21" x2="12" y2="17"></line>
+    <line x1="7" y1="12" x2="3" y2="12"></line>
+    <line x1="21" y1="12" x2="17" y2="12"></line>
+  </svg>
+);
+
 const ProfileIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -78,6 +89,7 @@ function Sidebar() {
     { path: "/admin/products", label: "Products", icon: <ProductIcon /> },
     { path: "/admin/products/variants", label: "Variant Products", icon: <VariantProductIcon /> },
     { path: "/admin/coupons", label: "Coupons", icon: <CouponIcon /> },
+    { path: "/admin/giftcards", label: "Gift Cards", icon: <GiftCardIcon /> },
     { path: "/admin/profile", label: "Profile", icon: <ProfileIcon /> },
   ];
 
