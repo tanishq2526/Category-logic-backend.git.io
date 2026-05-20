@@ -13,10 +13,11 @@ import GiftCards from "./pages/admin/GiftCards";
 import Profile from "./pages/admin/Profile";
 // import Orders from "./pages/admin/Orders";
 import Login from "./pages/Login";
+import UserHome from "./pages/UserHome";
 
 function AdminLayout({ children }) {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute role="admin">
       <div
         style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}
       >
@@ -43,6 +44,14 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route
+          path="/user/home"
+          element={
+            <ProtectedRoute role="user">
+              <UserHome />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/admin/dashboard"

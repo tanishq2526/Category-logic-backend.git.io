@@ -5,58 +5,144 @@ const jwt = require("jsonwebtoken");
 
 const User = require("../models/User");
 
+const createToken = (user) =>
+  jwt.sign(
+    {
+      id: user._id,
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "7d",
+    },
+  );
+
+const sendAuthResponse = (res, statusCode, message, user) => {
+  const token = createToken(user);
+
+  return res.status(statusCode).json({
+    success: true,
+    message,
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    },
+  });
+};
+
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, phone } = req.body;
+
+    if (!name?.trim() || !email?.trim() || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and password are required",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is already registered",
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
-      name,
-      email,
+      name: name.trim(),
+      email: normalizedEmail,
       password: hashedPassword,
-      role,
+      phone: phone?.trim() || "",
+      role: "user",
     });
+
     await newUser.save();
 
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-    });
+    return sendAuthResponse(res, 201, "User registered successfully", newUser);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 
 router.post("/register-admin", async (req, res) => {
   try {
-    const { name, email, password, role, secretKey } = req.body;
+    const { name, email, password, phone, secretKey } = req.body;
+
+    if (!name?.trim() || !email?.trim() || !password || !secretKey) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, password, and admin secret are required",
+      });
+    }
+
     if (secretKey !== process.env.ADMIN_SECRET) {
       return res
         .status(403)
         .json({ success: false, message: "Invalid secret key" });
     }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is already registered",
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
-      name,
-      email,
+      name: name.trim(),
+      email: normalizedEmail,
       password: hashedPassword,
+      phone: phone?.trim() || "",
       role: "admin",
     });
 
     await newUser.save();
 
-    res.status(201).json({
-      success: true,
-      message: "Admin registered successfully",
-    });
+    return sendAuthResponse(res, 201, "Admin registered successfully", newUser);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const isUser = await User.findOne({ email });
+
+    if (!email?.trim() || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
+
+    const isUser = await User.findOne({ email: email.trim().toLowerCase() });
+
     if (!isUser) {
       return res.status(404).json({
         success: false,
@@ -70,25 +156,11 @@ router.post("/login", async (req, res) => {
         message: "Invalid Password",
       });
     }
-    const jwtToken = jwt.sign(
-      { id: isUser._id, role: isUser.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      token: jwtToken,
-      user: {
-        id: isUser._id,
-        name: isUser.name,
-        email: isUser.email,
-        role: isUser.role,
-      },
-    });
+
+    return sendAuthResponse(res, 200, "Login successful", isUser);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 
-module.exports = router
+module.exports = router;
