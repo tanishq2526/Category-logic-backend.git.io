@@ -9,6 +9,7 @@ import SubCategory from "./pages/admin/SubCategory";
 import Product from "./pages/admin/Product";
 import VariantProducts from "./pages/admin/VariantProducts";
 import Coupons from "./pages/admin/Coupons";
+import GiftCards from "./pages/admin/GiftCards";
 import Profile from "./pages/admin/Profile";
 // import Orders from "./pages/admin/Orders";
 import Login from "./pages/Login";
@@ -96,6 +97,14 @@ function App() {
           element={
             <AdminLayout>
               <Coupons />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/giftcards"
+          element={
+            <AdminLayout>
+              <GiftCards />
             </AdminLayout>
           }
         />
