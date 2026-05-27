@@ -1,7 +1,17 @@
-const express = require("express");
+/*
+ * Handover note: Category API.
+ * Admin CRUD endpoints manage categories; public/all returns active categories for user-facing catalog pages.
+ */
+// const express = require("express");
+// const router = express.Router();
+// const Category = require("../models/Category");
+// const SubCategory = require("../models/SubCategory");
+
+import express from "express";
+import Category from "../models/Category.js";
+import SubCategory from "../models/SubCategory.js";
+
 const router = express.Router();
-const Category = require("../models/Category");
-const SubCategory = require("../models/SubCategory");
 
 // Create category
 router.post("/create", async (req, res) => {
@@ -24,7 +34,7 @@ router.post("/create", async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 });
@@ -42,17 +52,17 @@ router.get("/all", async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 });
 
 router.get("/public/all", async (req, res) => {
   try {
-    const categories = await Category.find({ status: "active" });
+    const categories = await Category.find({ status: "Active" });
     res.status(200).json({ success: true, data: categories });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
@@ -80,7 +90,7 @@ router.put("/update/:id", async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 });
@@ -104,10 +114,11 @@ router.delete("/delete/:id", async (req, res) => {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: error.message,
+        message: "Internal server error",
       });
     }
 
 });
 
-module.exports = router;
+// module.exports = router;
+export default router;

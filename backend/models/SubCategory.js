@@ -1,4 +1,9 @@
-const mongoose = require('mongoose')
+/*
+ * Handover note: Subcategory schema.
+ * Each subcategory belongs to one Category and is used by products for finer catalog filtering.
+ */
+// const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const subCategorySchema = new mongoose.Schema(
   {
@@ -27,4 +32,6 @@ const subCategorySchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model("SubCategory", subCategorySchema);
+// module.exports = mongoose.model("SubCategory", subCategorySchema);
+const SubCategory = mongoose.model("SubCategory", subCategorySchema);
+export default SubCategory;

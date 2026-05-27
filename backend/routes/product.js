@@ -1,205 +1,21 @@
+/*
+ * Handover note: Product API.
+ * Admin endpoints create/update/delete products with uploaded images; public endpoints expose active products
+ * and populate category/subcategory references for customer browsing.
+ */
 // const express = require("express");
 // const router = express.Router();
 
-// const Category = require("../models/Category");
 // const SubCategory = require("../models/SubCategory");
 // const Product = require("../models/Product");
 // const upload = require("../middleware/upload");
 
-// // Configure Multer to accept 5 distinct files
-// const cpUpload = upload.fields([
-//   { name: "image", maxCount: 1 },
-//   { name: "image1", maxCount: 1 },
-//   { name: "image2", maxCount: 1 },
-//   { name: "image3", maxCount: 1 },
-//   { name: "image4", maxCount: 1 },
-// ]);
+import express from "express";
+import SubCategory from "../models/SubCategory.js";
+import Product from "../models/Product.js";
+import upload from "../middleware/upload.js";
 
-// // Create Product
-// router.post("/create", cpUpload, async (req, res) => {
-//   try {
-//     const {
-//       subCategory,
-//       name,
-//       brand,
-//       price,
-//       discountPrice,
-//       discountPercent,
-//       status,
-//     } = req.body;
-//     let finalDiscountPrice = discountPrice;
-
-//     if (discountPercent && price) {
-//       finalDiscountPrice = price - (price * discountPercent) / 100;
-//     }
-
-//     const isSubCategory = await SubCategory.findById(subCategory);
-//     if (!isSubCategory) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "SubCategory not found" });
-//     }
-
-//     // Extract image paths if uploaded
-//     const getImagePath = (field) =>
-//       req.files && req.files[field]
-//         ? `/uploads/${req.files[field].filename}`
-//         : null;
-
-//     const product = new Product({
-//       subCategory,
-//       name,
-//       brand,
-//       price,
-//       discountPercent,
-//       status,
-//       discountPrice: finalDiscountPrice,
-//       image: getImagePath("image"),
-//       image1: getImagePath("image1"),
-//       image2: getImagePath("image2"),
-//       image3: getImagePath("image3"),
-//       image4: getImagePath("image4"),
-//     });
-
-//     await product.save();
-//     res.status(201).json({
-//       success: true,
-//       message: "Product created successfully:)",
-//       data: product,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// });
-
-// // Display products
-// router.get("/all", async (req, res) => {
-//   try {
-//     const { search, limit, page, status, subCategory } = req.query;
-//     const query = {};
-
-//     if (status) query.status = status;
-//     if (subCategory) query.subCategory = subCategory;
-//     if (search) {
-//       query.$or = [
-//         { name: { $regex: search, $options: "i" } },
-//         { brand: { $regex: search, $options: "i" } },
-//       ];
-//     }
-
-//     const parsedLimit = parseInt(limit, 10) || 0;
-//     const parsedPage = parseInt(page, 10) || 1;
-//     const skip = parsedLimit > 0 ? (parsedPage - 1) * parsedLimit : 0;
-
-//     const total = await Product.countDocuments(query);
-
-//     let productsQuery = Product.find(query).populate({
-//       path: "subCategory",
-//       populate: { path: "parentCategory" },
-//     });
-
-//     if (parsedLimit > 0) {
-//       productsQuery = productsQuery.skip(skip).limit(parsedLimit);
-//     }
-
-//     const products = await productsQuery;
-
-//     res.status(200).json({
-//       success: true,
-//       message: "Displaying products",
-//       data: products,
-//       total,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// });
-
-// // Public route — no auth needed
-// router.get("/public/all", async (req, res) => {
-//   try {
-//     const products = await Product.find({ status: "Active" }).populate({
-//       path: "subCategory",
-//       populate: { path: "parentCategory" },
-//     });
-//     res.status(200).json({ success: true, data: products });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// });
-
-// router.get("/public/:id", async (req, res) => {
-//   try {
-//     const product = await Product.findById(req.params.id).populate({
-//       path: "subCategory",
-//       populate: { path: "parentCategory" },
-//     });
-//     res.status(200).json({ success: true, data: product });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// });
-
-// // Update product
-// router.put("/update/:id", cpUpload, async (req, res) => {
-//   try {
-//     const ID = req.params.id;
-//     const updatedData = { ...req.body };
-
-//     if (updatedData.discountPercent && updatedData.price) {
-//       updatedData.discountPrice =
-//         updatedData.price -
-//         (updatedData.price * updatedData.discountPercent) / 100;
-//     }
-
-//     // If a new file is provided, overwrite the string value from req.body with the new file path
-//     const fields = ["image", "image1", "image2", "image3", "image4"];
-//     fields.forEach((field) => {
-//       if (req.files && req.files[field]) {
-//         updatedData[field] = `/uploads/${req.files[field].filename}`;
-//       }
-//     });
-
-//     const makeUpdate = await Product.findByIdAndUpdate(ID, updatedData, {
-//       new: true,
-//     });
-//     res.status(200).json({
-//       success: true,
-//       message: "Product updated successfully :)",
-//       data: makeUpdate,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// });
-
-// // Delete Product
-// router.delete("/delete/:id", async (req, res) => {
-//   try {
-//     const ID = req.params.id;
-//     const deleteProduct = await Product.findByIdAndDelete(ID);
-//     if (!deleteProduct) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Product not found" });
-//     }
-//     res
-//       .status(200)
-//       .json({ success: true, message: "Product Deleted successfully" });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// });
-
-// module.exports = router;
-
-const express = require("express");
 const router = express.Router();
-
-const Category = require("../models/Category");
-const SubCategory = require("../models/SubCategory");
-const Product = require("../models/Product");
-const upload = require("../middleware/upload");
 
 // ======================================================
 // MULTER CONFIG
@@ -238,6 +54,8 @@ router.post("/create", cpUpload, async (req, res) => {
       price,
       discountPrice,
       discountPercent,
+      stock,
+      slug,
       status,
     } = req.body;
 
@@ -302,7 +120,9 @@ router.post("/create", cpUpload, async (req, res) => {
       discountPrice: finalDiscountPrice,
       discountPercent,
       status,
-
+      stock,
+      slug,
+      
       image: getImagePath(req.files, "image"),
       image1: getImagePath(req.files, "image1"),
       image2: getImagePath(req.files, "image2"),
@@ -322,7 +142,7 @@ router.post("/create", cpUpload, async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 });
@@ -415,7 +235,7 @@ router.get("/all", async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 });
@@ -446,7 +266,7 @@ router.get("/public/all", async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 });
@@ -480,7 +300,7 @@ router.get("/public/:id", async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 });
@@ -552,7 +372,7 @@ router.put("/update/:id", cpUpload, async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 });
@@ -583,9 +403,10 @@ router.delete("/delete/:id", async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 });
 
-module.exports = router;
+// module.exports = router;
+export default router;

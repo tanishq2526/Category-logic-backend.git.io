@@ -1,4 +1,11 @@
-const mongoose = require("mongoose");
+
+/*
+ * Handover note: User/admin account schema.
+ * Auth routes create and read these documents; role controls whether the frontend
+ * sends the person to the admin dashboard or the user shopping experience.
+ */
+// const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
@@ -38,4 +45,6 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model("User", UserSchema);
+// module.exports = mongoose.model("User", UserSchema);
+const User = mongoose.model("User", UserSchema);
+export default User;
