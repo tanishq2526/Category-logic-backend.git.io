@@ -11,23 +11,39 @@ function Login() {
     e.preventDefault();
     setError("");
 
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.success) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      console.log(data);
 
-      if (data.user.role === "admin") {
+      if (!data.success) {
+        setError(data.message || "Login failed");
+        return;
+      }
+
+      // Updated structure
+      const user = data.data.user;
+      const token = data.data.token;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      if (user.role === "admin") {
         navigate("/admin/dashboard");
       } else {
         navigate("/");
       }
+    } catch (error) {
+      console.error(error);
+      setError("Something went wrong");
     }
   };
 

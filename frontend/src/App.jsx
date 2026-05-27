@@ -11,7 +11,9 @@ import VariantProducts from "./pages/admin/VariantProducts";
 import Coupons from "./pages/admin/Coupons";
 import GiftCards from "./pages/admin/GiftCards";
 import Profile from "./pages/admin/Profile";
-// import Orders from "./pages/admin/Orders";
+import OrderDetailsPage from "./pages/admin/OrderDetails";
+import OrderDetailPage from "./pages/admin/OrderDetailPage";
+import UserManagement from "./pages/admin/UserManagement";
 import Login from "./pages/Login";
 
 function AdminLayout({ children }) {
@@ -56,7 +58,7 @@ function App() {
           path="/admin/orders"
           element={
             <AdminLayout>
-              {/* <Orders /> */}
+              <OrderDetailsPage />
             </AdminLayout>
           }
         />
@@ -113,6 +115,22 @@ function App() {
           element={
             <AdminLayout>
               <Profile />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/order-details/:id"
+          element={
+            <AdminLayout>
+              <OrderDetailPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminLayout>
+              <UserManagement />
             </AdminLayout>
           }
         />
