@@ -1,15 +1,43 @@
-const express = require("express");
+/*
+ * Handover note: Variant API.
+ * Admin endpoints create/update/delete variants for products and handle variant image uploads.
+ */
+// const express = require("express");
+// const router = express.Router();
+
+// const Product = require("../models/Product");
+// const Variant = require("../models/Variant");
+// const upload = require("../middleware/upload");
+
+import express from "express";
+import Product from "../models/Product.js";
+import Variant from "../models/Variant.js";
+import upload from "../middleware/upload.js";
+
 const router = express.Router();
 
-const Product = require("../models/Product");
-const Variant = require("../models/Variant");
-const upload = require("../middleware/upload");
+const variantUpload = upload.fields([
+  { name: "image", maxCount: 1 },
+  { name: "image1", maxCount: 1 },
+  { name: "image2", maxCount: 1 },
+  { name: "image3", maxCount: 1 },
+  { name: "image4", maxCount: 1 },
+]);
+
+const getImagePath = (files, field) => {
+  if (files && files[field] && files[field][0]) return `/uploads/${files[field][0].filename}`;
+  return null;
+};
 
 // Create variant product
-router.post("/create", upload.single("image"), async (req, res) => {
+router.post("/create", variantUpload, async (req, res) => {
   try {
     const { parentProduct, name, brand, price, discountPercent, status } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
+    const image = getImagePath(req.files, "image");
+    const image1 = getImagePath(req.files, "image1");
+    const image2 = getImagePath(req.files, "image2");
+    const image3 = getImagePath(req.files, "image3");
+    const image4 = getImagePath(req.files, "image4");
     const isProduct = await Product.findById(parentProduct);
 
     if (!isProduct) {
@@ -19,6 +47,10 @@ router.post("/create", upload.single("image"), async (req, res) => {
     const variant = new Variant({
       parentProduct,
       image,
+      image1,
+      image2,
+      image3,
+      image4,
       name,
       brand,
       price,
@@ -33,7 +65,7 @@ router.post("/create", upload.single("image"), async (req, res) => {
     await variant.save();
     res.status(201).json({ success: true, message: "Variant product created successfully", data: variant });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
@@ -58,12 +90,12 @@ router.get("/all", async (req, res) => {
 
     res.status(200).json({ success: true, message: "Variant products loaded", data: variants });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
 // Update variant product
-router.put("/update/:id", upload.single("image"), async (req, res) => {
+router.put("/update/:id", variantUpload, async (req, res) => {
   try {
     const { parentProduct, name, brand, price, discountPercent, status } = req.body;
     const updatedData = {
@@ -79,9 +111,15 @@ router.put("/update/:id", upload.single("image"), async (req, res) => {
           : undefined,
     };
 
-    if (req.file) {
-      updatedData.image = `/uploads/${req.file.filename}`;
-    }
+    const imageFields = ["image", "image1", "image2", "image3", "image4"];
+
+    imageFields.forEach((field) => {
+      const newImage = getImagePath(req.files, field);
+
+      if (newImage) {
+        updatedData[field] = newImage;
+      }
+    });
 
     if (parentProduct) {
       const isProduct = await Product.findById(parentProduct);
@@ -97,7 +135,7 @@ router.put("/update/:id", upload.single("image"), async (req, res) => {
 
     res.status(200).json({ success: true, message: "Variant product updated successfully", data: variant });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
@@ -111,8 +149,9 @@ router.delete("/delete/:id", async (req, res) => {
 
     res.status(200).json({ success: true, message: "Variant product deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
-module.exports = router;
+// module.exports = router;
+export default router;

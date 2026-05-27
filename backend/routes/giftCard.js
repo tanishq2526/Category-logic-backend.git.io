@@ -1,7 +1,11 @@
-const express = require("express");
-const router = express.Router();
+/*
+ * Handover note: Gift card API.
+ * Admin endpoints create, list, update, and delete gift cards with uniqueness checks around gift card codes.
+ */
+import express from "express";
+import GiftCard from "../models/GiftCard.js";
 
-const GiftCard = require("../models/GiftCard");
+const router = express.Router();
 
 // CREATE GIFT CARD
 router.post("/create", async (req, res) => {
@@ -287,4 +291,5 @@ router.delete("/delete/:id", async (req, res) => {
   }
 });
 
-module.exports = router;
+// module.exports = router;
+export default router;

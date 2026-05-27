@@ -1,4 +1,10 @@
-const mongoose = require("mongoose");
+/*
+ * Handover note: Gift card schema.
+ * Admin gift card routes manage purchasable/issuable gift card records with code, value,
+ * balance, validity, recipient data, and status.
+ */
+// const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const giftCardSchema = new mongoose.Schema(
   {
@@ -47,4 +53,6 @@ const giftCardSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model("GiftCard", giftCardSchema);
+// module.exports = mongoose.model("GiftCard", giftCardSchema);
+const GiftCard = mongoose.model("GiftCard", giftCardSchema);
+export default GiftCard;

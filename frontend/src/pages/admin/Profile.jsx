@@ -1,3 +1,7 @@
+/*
+ * Handover note: Admin profile screen.
+ * Reads admin profile data from /api/admin/profile and submits text/image updates as FormData.
+ */
 import { useEffect, useMemo, useState } from "react";
 import API from "../../utils/api";
 

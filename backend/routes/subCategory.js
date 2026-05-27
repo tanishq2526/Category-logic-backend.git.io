@@ -1,8 +1,18 @@
-const express = require("express");
-const router = express.Router();
+/*
+ * Handover note: Subcategory API.
+ * Admin CRUD endpoints manage subcategories and populate the linked Category so UI tables can show names.
+ */
+// const express = require("express");
+// const router = express.Router();
 
-const SubCategory = require("../models/SubCategory");
-const Category = require("../models/Category");
+// const SubCategory = require("../models/SubCategory");
+// const Category = require("../models/Category");
+
+import express from "express";
+import SubCategory from "../models/SubCategory.js";
+import Category from "../models/Category.js";
+
+const router = express.Router();
 
 // Create SubCategory
 router.post("/create", async(req,res) => {
@@ -40,7 +50,7 @@ router.post("/create", async(req,res) => {
     }catch(error){
         res.status(500).json({
             success: false,
-            message : error.message,
+            message : "Internal server error",
         })
     }
 })
@@ -58,19 +68,19 @@ router.get("/all", async(req,res) => {
       } catch (error) {
         res.status(500).json({
           success: false,
-          message: error.message,
+          message: "Internal server error",
         });
       } 
 })
 
 router.get("/public/all", async (req, res) => {
   try {
-    const subCategories = await SubCategory.find({ status: "active" }).populate(
+    const subCategories = await SubCategory.find({ status: "Active" }).populate(
       "parentCategory",
     );
     res.status(200).json({ success: true, data: subCategories });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
@@ -115,7 +125,7 @@ router.put("/update/:id", async(req,res) => {
         } catch (error) {
             res.status(500).json({
               success: false,
-              message: error.message,
+              message: "Internal server error",
             });
         }
     
@@ -140,10 +150,11 @@ try {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: error.message,
+        message: "Internal server error",
       });
     }
 
 })
 
-module.exports = router;
+// module.exports = router;
+export default router;

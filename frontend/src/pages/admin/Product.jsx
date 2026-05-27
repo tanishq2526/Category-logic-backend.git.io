@@ -1,3 +1,7 @@
+/*
+ * Handover note: Admin product manager.
+ * Loads category/subcategory/product data, builds multipart FormData for image uploads, and calls /api/product CRUD endpoints.
+ */
 // import { useState, useEffect, useCallback } from "react";
 // import "./Product.css";
 
@@ -813,6 +817,7 @@ import "./Product.css";
 // ICONS
 // ─────────────────────────────────────────────────────────────
 
+
 const EditIcon = () => (
   <svg
     width="20"
@@ -986,6 +991,8 @@ function ProductModal({
 
   const [name, setName] = useState(isEdit ? product?.name || "" : "");
   const [brand, setBrand] = useState(isEdit ? product?.brand || "" : "");
+  const [slug, setSlug] = useState(isEdit ? product?.slug || "" : "");
+  const [stock, setStock] = useState(isEdit ? product?.stock ?? "" : "");
   const [price, setPrice] = useState(isEdit ? product?.price || "" : "");
 
   const [discountPercent, setDiscountPercent] = useState(
@@ -1015,6 +1022,21 @@ function ProductModal({
   const subcategories = allSubcategories.filter(
     (s) => !selectedParent || s.parentCategory?._id === selectedParent,
   );
+  const selectedParentCategory = categories.find(
+    (cat) => cat._id === selectedParent,
+  );
+  const selectedSubCategory = allSubcategories.find(
+    (sub) => sub._id === selectedCategory,
+  );
+  const relationInactive =
+    selectedParentCategory?.status === "Inactive" ||
+    selectedSubCategory?.status === "Inactive";
+
+  useEffect(() => {
+    if (relationInactive) {
+      setStatus("Inactive");
+    }
+  }, [relationInactive]);
 
   // FIXED IMAGE HANDLER
   const handleImageChange = (field, e) => {
@@ -1044,6 +1066,16 @@ function ProductModal({
   };
 
   const handleSubmit = async () => {
+    if (!slug.trim()) {
+      setError("Slug is required.");
+      return;
+    }
+
+    if (stock === "" || stock < 0) {
+      setError("Stock must be 0 or more.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
@@ -1055,7 +1087,9 @@ function ProductModal({
       formData.append("brand", brand);
       formData.append("price", price);
       formData.append("discountPercent", discountPercent);
-      formData.append("status", status);
+      formData.append("status", relationInactive ? "Inactive" : status);
+      formData.append("slug", slug.trim());
+      formData.append("stock", stock);
 
       Object.keys(images).forEach((key) => {
         if (images[key].file instanceof File) {
@@ -1201,7 +1235,10 @@ function ProductModal({
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (!isEdit) setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""));
+                }}
               />
             </div>
 
@@ -1212,6 +1249,29 @@ function ProductModal({
                 type="text"
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="pm-row">
+            <div className="pm-field">
+              <label>Slug</label>
+
+              <input
+                type="text"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+              />
+            </div>
+
+            <div className="pm-field">
+              <label>Stock</label>
+
+              <input
+                type="number"
+                min="0"
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
               />
             </div>
           </div>
@@ -1241,7 +1301,11 @@ function ProductModal({
           <div className="pm-field">
             <label>Status</label>
 
-            <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <select
+              value={relationInactive ? "Inactive" : status}
+              onChange={(e) => setStatus(e.target.value)}
+              disabled={relationInactive}
+            >
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
@@ -1358,6 +1422,14 @@ function Product() {
     load();
   }, [load]);
 
+  const getEffectiveProductStatus = (product) => {
+    const categoryInactive =
+      product.subCategory?.parentCategory?.status === "Inactive";
+    const subCategoryInactive = product.subCategory?.status === "Inactive";
+
+    return categoryInactive || subCategoryInactive ? "Inactive" : product.status;
+  };
+
   const filtered = products.filter((p) => {
     const q = search.toLowerCase();
 
@@ -1366,7 +1438,7 @@ function Product() {
       p.name?.toLowerCase().includes(q) ||
       p.brand?.toLowerCase().includes(q);
 
-    const matchStatus = !filterStatus || p.status === filterStatus;
+    const matchStatus = !filterStatus || getEffectiveProductStatus(p) === filterStatus;
 
     const matchCategory =
       !filterCategory || p.subCategory?.parentCategory?._id === filterCategory;
@@ -1462,6 +1534,8 @@ function Product() {
               <th>Image</th>
               <th>Product</th>
               <th>Brand</th>
+              <th>Slug</th>
+              <th>Stock</th>
               <th>Category</th>
               <th>SubCategory</th>
               <th>Price</th>
@@ -1475,7 +1549,7 @@ function Product() {
           <tbody>
             {paginated.length === 0 ? (
               <tr>
-                <td colSpan="10">No Products Found</td>
+                <td colSpan="12">No Products Found</td>
               </tr>
             ) : (
               paginated.map((product) => {
@@ -1483,6 +1557,7 @@ function Product() {
                   product.price,
                   product.discountPercent,
                 );
+                const effectiveStatus = getEffectiveProductStatus(product);
 
                 return (
                   <tr key={product._id}>
@@ -1506,6 +1581,10 @@ function Product() {
 
                     <td>{product.brand || "—"}</td>
 
+                    <td>{product.slug || "—"}</td>
+
+                    <td>{product.stock ?? "—"}</td>
+
                     <td>{product.subCategory?.parentCategory?.name || "—"}</td>
 
                     <td>{product.subCategory?.name || "—"}</td>
@@ -1525,12 +1604,12 @@ function Product() {
                     <td>
                       <span
                         className={`pm-badge ${
-                          product.status === "Active"
+                          effectiveStatus === "Active"
                             ? "pm-badge-active"
                             : "pm-badge-inactive"
                         }`}
                       >
-                        {product.status}
+                        {effectiveStatus}
                       </span>
                     </td>
 

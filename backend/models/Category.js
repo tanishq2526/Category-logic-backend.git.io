@@ -1,4 +1,10 @@
-const mongoose = require("mongoose");
+/*
+ * Handover note: Top-level product category schema.
+ * Admin category screens manage this collection; product and subcategory records
+ * reference category ids to build the catalog hierarchy.
+ */
+// const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const categorySchema = new mongoose.Schema(
   {
@@ -22,4 +28,6 @@ const categorySchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model("Category", categorySchema);
+// module.exports = mongoose.model("Category", categorySchema);
+const Category = mongoose.model("Category", categorySchema);
+export default Category;

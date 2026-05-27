@@ -1,4 +1,10 @@
-const mongoose = require("mongoose")
+/*
+ * Handover note: MongoDB connection helper.
+ * server.js calls connectDB() once on startup; this file reads MONGO_URI from .env
+ * and establishes the shared Mongoose connection used by every model and route.
+ */
+// const mongoose = require("mongoose")
+import mongoose from "mongoose"
 
 const connectDB = async () => {
     try{
@@ -11,4 +17,5 @@ const connectDB = async () => {
     }
 }
 
-module.exports = connectDB;
+// module.exports = connectDB;
+export default connectDB;

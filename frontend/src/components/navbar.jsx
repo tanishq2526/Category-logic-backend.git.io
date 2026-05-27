@@ -1,3 +1,7 @@
+/*
+ * Handover note: User-facing navbar.
+ * Provides basic navigation and logout behavior for non-admin pages.
+ */
 import { Link, useNavigate } from "react-router-dom";
 
 function Navbar() {
@@ -29,7 +33,7 @@ function Navbar() {
           <Link to="/admin/subcategory">SubCategories</Link>
         </li>
         <li>
-          <Link to="/admin/product">Products</Link>
+          <Link to="/admin/products">Products</Link>
         </li>
         <li style={{ marginLeft: "auto" }}>
           <button

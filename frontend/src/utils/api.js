@@ -1,3 +1,7 @@
+/*
+ * Handover note: Small fetch wrapper.
+ * Adds JSON headers by default and centralizes response parsing/errors for screens that choose to use it.
+ */
 const API = async (url, options = {}) => {
   const token = localStorage.getItem("token");
 

@@ -1,3 +1,7 @@
+/*
+ * Handover note: Global frontend styling.
+ * These rules apply across the React app: base layout, shared colors, reusable buttons/forms, and responsive behavior.
+ */
 * {
   margin: 0;
   padding: 0;

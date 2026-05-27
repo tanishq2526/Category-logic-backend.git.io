@@ -1,7 +1,18 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const upload = require('../middleware/upload');
-const User = require('../models/User');
+/*
+ * Handover note: Admin profile API.
+ * Reads and updates the logged-in admin profile, including optional profile image upload via multer.
+ */
+// const express = require('express');
+// const bcrypt = require('bcryptjs');
+// const upload = require('../middleware/upload');
+// const User = require('../models/User');
+
+// const router = express.Router();
+
+import express from "express";
+import bcrypt from "bcryptjs";
+import upload from "../middleware/upload.js";
+import User from "../models/User.js";
 
 const router = express.Router();
 
@@ -10,7 +21,7 @@ router.get('/admin/profile', async (req, res) => {
     const admin = await User.findById(req.user.id).select('-password');
 
     if (!admin || admin.role !== 'admin') {
-      return res.status(401).json({
+      return res.status(403).json({
         success: false,
         message: 'Not authenticated as admin',
       });
@@ -23,7 +34,7 @@ router.get('/admin/profile', async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 });
@@ -33,7 +44,7 @@ router.put('/admin/profile', upload.single('profileImage'), async (req, res) => 
     const admin = await User.findById(req.user.id);
 
     if (!admin || admin.role !== 'admin') {
-      return res.status(401).json({
+      return res.status(403).json({
         success: false,
         message: 'Not authenticated as admin',
       });
@@ -119,9 +130,10 @@ router.put('/admin/profile', upload.single('profileImage'), async (req, res) => 
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 });
 
-module.exports = router;
+// module.exports = router;
+export default router;

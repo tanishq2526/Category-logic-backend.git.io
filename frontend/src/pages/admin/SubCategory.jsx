@@ -1,3 +1,7 @@
+/*
+ * Handover note: Admin subcategory manager.
+ * Loads categories for the parent dropdown, fetches /api/subCategory/all, and handles create/update/delete flows.
+ */
 import { useState, useEffect, useMemo, useCallback } from "react";
 
 const EditIcon = () => (

@@ -1,4 +1,10 @@
-const mongoose = require("mongoose");
+/*
+ * Handover note: Product catalog schema.
+ * Admin product routes create/update these records with images, category links, stock,
+ * pricing, and status; public product endpoints read active records for shoppers.
+ */
+// const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const ProductSchema = new mongoose.Schema(
   {
@@ -45,6 +51,14 @@ const ProductSchema = new mongoose.Schema(
     discountPercent: {
       type: Number,
     },
+    stock:{
+      type: Number,
+      required: true,
+    },
+    slug: {
+      type: String,
+      required: true,
+    },
     status: {
       type: String,
       enum: ["Active", "Inactive"],
@@ -55,4 +69,6 @@ const ProductSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model("Products", ProductSchema);
+// module.exports = mongoose.model("Products", ProductSchema);
+const Product = mongoose.model("Products", ProductSchema);
+export default Product;

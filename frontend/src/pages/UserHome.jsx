@@ -1,3 +1,7 @@
+/*
+ * Handover note: User landing page.
+ * Shows the post-login shopping/customer entry experience and uses localStorage user details for personalization and logout.
+ */
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
