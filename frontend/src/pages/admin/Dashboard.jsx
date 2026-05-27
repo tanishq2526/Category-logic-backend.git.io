@@ -1,10 +1,33 @@
+/*
+ * Handover note: Admin dashboard screen.
+ * Fetches summary data from protected backend endpoints and presents quick operational status for catalog/order management.
+ */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API = (path) =>
-  fetch(path, {
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-  }).then((r) => r.json());
+// const API = (path) =>
+//   fetch(path, {
+//     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+//   }).then((r) => r.json());
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+const API = async (path) => {
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  const token = userInfo?.token || localStorage.getItem("token");
+
+  const res = await fetch(path, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("API request failed");
+  }
+
+  return res.json();
+};
 
 const COLORS = [
   "#6366f1",
@@ -154,7 +177,7 @@ export default function Dashboard() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
-  const [orders] = useState([]); // placeholder until orders API exists
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -162,10 +185,12 @@ export default function Dashboard() {
       API("/api/category/all"),
       API("/api/subCategory/all"),
       API("/api/product/all"),
-    ]).then(([cat, sub, prod]) => {
+      API("/api/orders")
+    ]).then(([cat, sub, prod, orderData]) => {
       setCategories(cat.data || []);
       setSubCategories(sub.data || []);
       setProducts(prod.data || []);
+      setOrders(orderData.data || []);
       setLoading(false);
     });
   }, []);
@@ -174,8 +199,13 @@ export default function Dashboard() {
     (sum, p) => sum + (p.discountPrice || p.price || 0),
     0,
   );
-  const activeProducts = products.filter((p) => p.status === "Active").length;
+const activeProducts = products.filter((p) => p.status === "Active").length;
 
+const pendingOrders = orders.filter((o) => o.orderStatus === "Pending").length;
+
+const completedOrders = orders.filter(
+  (o) => o.orderStatus === "Delivered",
+).length;
   // Fake monthly revenue data based on product prices (demo)
   const months = [
     "Jan",
@@ -270,7 +300,7 @@ export default function Dashboard() {
           label="Total Orders"
           value={orders.length || 0}
           color="#6366f1"
-          sub="Pending: 0 • Completed: 0"
+          sub={`Pending: ${pendingOrders} • Completed: ${completedOrders}`}
           onClick={() => navigate("/admin/orders")}
         />
         <StatCard

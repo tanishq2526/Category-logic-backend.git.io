@@ -1,3 +1,7 @@
+/*
+ * Handover note: Admin variant manager.
+ * Loads products and variants, links each variant to a parent product, uploads variant images, and calls /api/variant CRUD endpoints.
+ */
 // import { useEffect, useMemo, useState } from "react";
 
 // const API = {
@@ -1074,6 +1078,8 @@ function VariantProducts() {
       Object.keys(images).forEach((key) => {
         if (images[key].file instanceof File) {
           payload.append(key, images[key].file);
+        } else if (images[key].existing) {
+          payload.append(key, images[key].existing);
         }
       });
 

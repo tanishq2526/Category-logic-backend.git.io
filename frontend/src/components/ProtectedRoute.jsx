@@ -1,3 +1,7 @@
+/*
+ * Handover note: Frontend route guard.
+ * Reads token/user from localStorage and redirects visitors away from protected pages when login or role is missing.
+ */
 import { Navigate } from "react-router-dom";
 
 function ProtectedRoute({ children, role }) {

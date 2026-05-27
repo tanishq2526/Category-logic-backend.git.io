@@ -1,3 +1,7 @@
+/*
+ * Handover note: Admin category manager.
+ * Fetches /api/category/all, creates/updates/deletes categories, and keeps the local table state synchronized after each action.
+ */
 import { useState, useEffect } from "react";
 
 const S = { fontFamily: "'Outfit',sans-serif" };

@@ -1,3 +1,7 @@
+/*
+ * Handover note: Login/register screen.
+ * Sends credentials to /api/auth endpoints, stores returned token/user in localStorage, and routes admins/users to their correct landing page.
+ */
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
