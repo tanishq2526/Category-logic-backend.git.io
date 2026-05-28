@@ -4,6 +4,8 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const PAGE_SIZE = 10;
@@ -55,6 +57,97 @@ const isImageUrl = (src) => {
     src.startsWith("./") ||
     src.startsWith("../")
   );
+};
+
+// ── PDF Generation ────────────────────────────────────────────────────────────
+const generateInvoicePDF = (order) => {
+  if (!order) return;
+  const doc = new jsPDF();
+
+  const fmtPlain = (n) =>
+    "Rs. " +
+    Number(n).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+  // Header
+  doc.setFontSize(20);
+  doc.setTextColor(30, 41, 59);
+  doc.text("Invoice / Order Receipt", 14, 22);
+
+  doc.setFontSize(11);
+  doc.setTextColor(100);
+  doc.text(`Order ID: ${order.shortId || order._id?.slice(-6).toUpperCase() || order._id}`, 14, 30);
+  doc.text(`Date: ${new Date().toLocaleDateString("en-IN")}`, 14, 36);
+
+  // Customer Details
+  doc.setFontSize(14);
+  doc.setTextColor(0);
+  doc.text("Customer Details", 14, 50);
+
+  doc.setFontSize(11);
+  doc.setTextColor(100);
+  doc.text(`Name: ${order.user?.name || "N/A"}`, 14, 58);
+  doc.text(`Email: ${order.user?.email || "N/A"}`, 14, 64);
+  doc.text(`Phone: ${order.user?.phone || "N/A"}`, 14, 70);
+
+  // Shipping Details
+  doc.setFontSize(14);
+  doc.setTextColor(0);
+  doc.text("Shipping Address", 100, 50);
+
+  doc.setFontSize(11);
+  doc.setTextColor(100);
+  doc.text(`${order.shippingAddress?.address || ""}`, 100, 58);
+  doc.text(`${order.shippingAddress?.city || ""}, ${order.shippingAddress?.postalCode || ""}`, 100, 64);
+  doc.text(`${order.shippingAddress?.country || ""}`, 100, 70);
+
+  // Items Table
+  const tableColumn = ["Item", "Quantity", "Price", "Total"];
+  const tableRows = [];
+
+  if (order.orderItems && order.orderItems.length > 0) {
+    order.orderItems.forEach((item) => {
+      const itemData = [
+        item.name,
+        item.qty.toString(),
+        fmtPlain(item.price),
+        fmtPlain(item.qty * item.price),
+      ];
+      tableRows.push(itemData);
+    });
+  }
+
+  autoTable(doc, {
+    startY: 85,
+    head: [tableColumn],
+    body: tableRows,
+    theme: "striped",
+    headStyles: { fillColor: [30, 41, 59] },
+  });
+
+  // Price Breakdown
+  const finalY = doc.lastAutoTable.finalY || 85;
+
+  doc.setFontSize(11);
+  doc.setTextColor(100);
+  doc.text(`Subtotal:`, 130, finalY + 10);
+  doc.text(`Tax:`, 130, finalY + 16);
+  doc.text(`Shipping:`, 130, finalY + 22);
+
+  doc.setTextColor(0);
+  doc.text(`${fmtPlain(order.itemsPrice || 0)}`, 160, finalY + 10);
+  doc.text(`${fmtPlain(order.taxPrice || 0)}`, 160, finalY + 16);
+  doc.text(`${order.shippingPrice === 0 ? "Free" : fmtPlain(order.shippingPrice || 0)}`, 160, finalY + 22);
+
+  doc.setFontSize(13);
+  doc.setFont("helvetica", "bold");
+  doc.text(`Grand Total:`, 130, finalY + 30);
+  doc.text(`${fmtPlain(order.totalPrice || 0)}`, 160, finalY + 30);
+
+  // Save the PDF
+  doc.save(`Invoice_Order_${order.shortId || order._id?.slice(-6).toUpperCase() || order._id}.pdf`);
 };
 
 // ── Status colours ────────────────────────────────────────────────────────────
@@ -687,8 +780,16 @@ export default function Orderdetails() {
             };
       setOrders((prev) => prev.map(patch));
       setDetailOrder((prev) => (prev ? patch(prev) : prev));
+      
+      if (status === "Delivered") {
+        const targetOrder = orders.find((o) => o._id === id);
+        if (targetOrder) {
+          generateInvoicePDF({ ...targetOrder, orderStatus: "Delivered" });
+        }
+      }
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to update status");
+      console.error("Error in status update or PDF generation:", err);
+      alert(err.response?.data?.message || err.message || "Failed to update status");
     } finally {
       setUpdating(false);
     }

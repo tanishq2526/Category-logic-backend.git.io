@@ -28,6 +28,9 @@ import UserHome from "./pages/UserHome";
 import OrderDetails from "./pages/admin/Orderdetail";
 import OrderDetailPage from "./pages/admin/OrderDetailPage";
 
+// Users
+import UserManagementPage from "./pages/admin/usermanagmentPage";
+
 // ─────────────────────────────────────────────────────────────
 // Admin Layout
 // ─────────────────────────────────────────────────────────────
@@ -96,6 +99,16 @@ function App() {
           element={
             <AdminLayout>
               <OrderDetails />
+            </AdminLayout>
+          }
+        />
+
+        {/* Users Management */}
+        <Route
+          path="/admin/users"
+          element={
+            <AdminLayout>
+              <UserManagementPage />
             </AdminLayout>
           }
         />
