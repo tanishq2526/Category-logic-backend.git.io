@@ -55,10 +55,6 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       required: true,
-      enum: {
-        values: ["Stripe", "PayPal", "Razorpay", "COD"],
-        message: "{VALUE} is not a supported payment method",
-      },
     },
     paymentResult: {
       // Filled in by PUT /api/orders/:id/pay after gateway callback
