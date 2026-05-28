@@ -34,6 +34,7 @@ import variantRoutes from "./routes/variant.js";
 import profileRoutes from "./routes/profile.js";
 import giftCardRoutes from "./routes/giftCard.js";
 import orderRoutes from "./routes/order.js";
+import userRoutes from "./routes/user.js";
 
 // ─────────────────────────────────────────────────────────────
 // CONFIG
@@ -59,7 +60,7 @@ connectDB();
 // MIDDLEWARE
 // ─────────────────────────────────────────────────────────────
 
-// ✅ CORS FIXED
+// ✅ CORS FIXED (Allows localhost:5174 via .env)
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -117,6 +118,7 @@ app.use("/api/giftCard", protect, giftCardRoutes);
  * DO NOT APPLY protect HERE AGAIN
  */
 app.use("/api/orders", orderRoutes);
+app.use("/api/users", userRoutes);
 
 // ─────────────────────────────────────────────────────────────
 // TEST ROUTE
