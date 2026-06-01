@@ -157,7 +157,7 @@ npm install
 Create a .env file in root directory.
 
 MONGO_URI=your_mongodb_atlas_connection_string
-PORT=5000
+PORT=3000
 5️⃣ Start Development Server
 npm run dev
 
@@ -172,7 +172,7 @@ PORT	Server Running Port
 Example:
 
 MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/ecommerceDB
-PORT=5000
+PORT=3000
 📡 API Endpoints
 📂 Category Routes
 Method	Endpoint	Description
