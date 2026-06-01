@@ -3,13 +3,13 @@
 // Every function returns { data, error } — callers never need try/catch.
 //
 // Base URL is read from Vite / CRA env vars. Set it in your .env:
-//   VITE_API_BASE_URL=http://localhost:5000        (Vite)
-//   REACT_APP_API_BASE_URL=http://localhost:5000   (CRA)
+//   VITE_API_BASE_URL=http://localhost:3000        (Vite)
+//   REACT_APP_API_BASE_URL=http://localhost:3000   (CRA)
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Vite exposes env vars via import.meta.env (never process.env — that's Node-only
 // and throws a ReferenceError in the browser).
-// Set VITE_API_BASE_URL in your .env file:  VITE_API_BASE_URL=http://localhost:5000
+// Set VITE_API_BASE_URL in your .env file:  VITE_API_BASE_URL=http://localhost:3000
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
 // ── Auth token ────────────────────────────────────────────────────────────────
