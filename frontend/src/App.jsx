@@ -30,6 +30,19 @@ import OrderDetailPage from "./pages/admin/OrderDetailPage";
 
 // Users
 import UserManagementPage from "./pages/admin/usermanagmentPage";
+import VendorManagementPage from "./pages/admin/VendorManagementPage";
+import VendorProfilePage from "./pages/admin/VendorProfilePage";
+
+// Seller Components
+import SellerSidebar from "./components/SellerSidebar";
+import SellerDashboard from "./pages/seller/SellerDashboard";
+import SellerOrders from "./pages/seller/SellerOrders";
+import SellerProducts from "./pages/seller/SellerProducts";
+import SellerVariants from "./pages/seller/SellerVariants";
+import SellerProfile from "./pages/seller/SellerProfile";
+import SellerPayments from "./pages/seller/SellerPayments";
+import SellerReports from "./pages/seller/SellerReports";
+import SellerSupport from "./pages/seller/SellerSupport";
 
 // ─────────────────────────────────────────────────────────────
 // Admin Layout
@@ -45,6 +58,37 @@ function AdminLayout({ children }) {
         }}
       >
         <Sidebar />
+
+        <main
+          style={{
+            marginLeft: "250px",
+            flex: 1,
+            padding: "24px",
+            minHeight: "100vh",
+            overflowX: "hidden",
+          }}
+        >
+          {children}
+        </main>
+      </div>
+    </ProtectedRoute>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Seller Layout
+// ─────────────────────────────────────────────────────────────
+function SellerLayout({ children }) {
+  return (
+    <ProtectedRoute role="user">
+      <div
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          background: "#f1f5f9",
+        }}
+      >
+        <SellerSidebar />
 
         <main
           style={{
@@ -109,6 +153,24 @@ function App() {
           element={
             <AdminLayout>
               <UserManagementPage />
+            </AdminLayout>
+          }
+        />
+
+        {/* Vendors Management */}
+        <Route
+          path="/admin/vendors"
+          element={
+            <AdminLayout>
+              <VendorManagementPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/vendors/:id"
+          element={
+            <AdminLayout>
+              <VendorProfilePage />
             </AdminLayout>
           }
         />
@@ -190,6 +252,74 @@ function App() {
             <AdminLayout>
               <Profile />
             </AdminLayout>
+          }
+        />
+
+        {/* ───────────────────────────────────────────────────────────── */}
+        {/* Seller Routes */}
+        {/* ───────────────────────────────────────────────────────────── */}
+        <Route
+          path="/seller/dashboard"
+          element={
+            <SellerLayout>
+              <SellerDashboard />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/orders"
+          element={
+            <SellerLayout>
+              <SellerOrders />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/products"
+          element={
+            <SellerLayout>
+              <SellerProducts />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/variants"
+          element={
+            <SellerLayout>
+              <SellerVariants />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/payments"
+          element={
+            <SellerLayout>
+              <SellerPayments />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/reports"
+          element={
+            <SellerLayout>
+              <SellerReports />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/support"
+          element={
+            <SellerLayout>
+              <SellerSupport />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/profile"
+          element={
+            <SellerLayout>
+              <SellerProfile />
+            </SellerLayout>
           }
         />
 

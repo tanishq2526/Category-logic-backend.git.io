@@ -402,7 +402,7 @@ const UserProfileDrawer = ({ userId, onClose, onStatusChanged }) => {
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 const FILTER_TABS = [
-  { label: "All",      value: "",         icon: "👥", statsKey: "total",    accent: "#0f172a" },
+  { label: "All",      value: "",         icon: "👥", statsKey: "total",    accent: "#6366f1" },
   { label: "Hot",      value: "Hot",      icon: "🔥", statsKey: "hot",      accent: "#cf1322" },
   { label: "Cold",     value: "Cold",     icon: "🧊", statsKey: "cold",     accent: "#0958d9" },
   { label: "Deactive", value: "Deactive", icon: "💤", statsKey: "deactive", accent: "#595959" },
@@ -611,13 +611,13 @@ const UserManagementPage = () => {
                     <button
                       onClick={() => setSelectedId(u._id)}
                       style={{
-                        background: "#0f172a", color: "#fff", border: "none",
+                        background: "#6366f1", color: "#fff", border: "none",
                         padding: "7px 14px", borderRadius: 8, fontSize: 12,
                         fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
                         transition: "background .15s",
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "#1d4ed8")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "#0f172a")}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#4f46e5")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#6366f1")}
                     >
                       View Profile →
                     </button>
@@ -652,7 +652,7 @@ const UserManagementPage = () => {
                   width: 34, height: 34, borderRadius: 8, fontSize: 13,
                   cursor: "pointer", fontWeight: p === page ? 800 : 500,
                   border: p === page ? "none" : "1px solid #e2e8f0",
-                  background: p === page ? "#0f172a" : "#fff",
+                  background: p === page ? "#6366f1" : "#fff",
                   color: p === page ? "#fff" : "#374151",
                 }}
               >{p}</button>

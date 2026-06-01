@@ -770,17 +770,17 @@ export default function Orderdetails() {
         o._id !== id
           ? o
           : {
-              ...o,
-              orderStatus: status,
-              isDelivered: status === "Delivered" ? true : o.isDelivered,
-              deliveredAt:
-                status === "Delivered"
-                  ? new Date().toISOString()
-                  : o.deliveredAt,
-            };
+            ...o,
+            orderStatus: status,
+            isDelivered: status === "Delivered" ? true : o.isDelivered,
+            deliveredAt:
+              status === "Delivered"
+                ? new Date().toISOString()
+                : o.deliveredAt,
+          };
       setOrders((prev) => prev.map(patch));
       setDetailOrder((prev) => (prev ? patch(prev) : prev));
-      
+
       if (status === "Delivered") {
         const targetOrder = orders.find((o) => o._id === id);
         if (targetOrder) {
