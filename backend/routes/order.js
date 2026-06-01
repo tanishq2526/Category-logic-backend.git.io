@@ -208,9 +208,6 @@ router.get("/myorders", protect, async (req, res) => {
 // @access  Private/Admin
 router.get("/", protect, admin, async (req, res) => {
   try {
-    const pageSize = 20;
-    const page = Math.max(1, Number(req.query.pageNumber) || 1);
-
     const filter = {};
     if (req.query.status) filter.orderStatus = req.query.status;
 
@@ -224,16 +221,24 @@ router.get("/", protect, admin, async (req, res) => {
 
     const count = await Order.countDocuments(filter);
 
-    const orders = await Order.find(filter)
+    let query = Order.find(filter)
       .populate("user", "id name email phone") // phone added for UI display
-      .sort({ createdAt: -1 })
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
+      .sort({ createdAt: -1 });
+
+    const isAll = req.query.limit === "all";
+    const pageSize = isAll ? count : 20;
+    const page = isAll ? 1 : Math.max(1, Number(req.query.pageNumber) || 1);
+
+    if (!isAll) {
+      query = query.limit(pageSize).skip(pageSize * (page - 1));
+    }
+
+    const orders = await query;
 
     res.json({
       orders: orders.map(formatOrder),
       page,
-      pages: Math.ceil(count / pageSize),
+      pages: isAll ? 1 : Math.ceil(count / (pageSize || 1)),
       totalOrders: count,
     });
   } catch (error) {

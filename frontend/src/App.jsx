@@ -137,6 +137,37 @@ function VendorLayout({ children }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// Seller Layout
+// ─────────────────────────────────────────────────────────────
+function SellerLayout({ children }) {
+  return (
+    <ProtectedRoute role="user">
+      <div
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          background: "#f1f5f9",
+        }}
+      >
+        <SellerSidebar />
+
+        <main
+          style={{
+            marginLeft: "250px",
+            flex: 1,
+            padding: "24px",
+            minHeight: "100vh",
+            overflowX: "hidden",
+          }}
+        >
+          {children}
+        </main>
+      </div>
+    </ProtectedRoute>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // App — route definitions
 // ─────────────────────────────────────────────────────────────────────────────
@@ -179,6 +210,17 @@ function App() {
           }
         />
 
+        {/* Users Management */}
+        <Route
+          path="/admin/users"
+          element={
+            <AdminLayout>
+              <UserManagementPage />
+            </AdminLayout>
+          }
+        />
+
+        {/* Single Order Details */}
         <Route
           path="/admin/order-details/:id"
           element={
@@ -259,6 +301,68 @@ function App() {
             </AdminLayout>
           }
         />
+
+        {/* ───────────────────────────────────────────────────────────── */}
+        {/* Seller Routes */}
+        {/* ───────────────────────────────────────────────────────────── */}
+
+        {/*
+        <Route
+          path="/seller/orders"
+          element={
+            <SellerLayout>
+              <SellerOrders />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/products"
+          element={
+            <SellerLayout>
+              <SellerProducts />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/variants"
+          element={
+            <SellerLayout>
+              <SellerVariants />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/payments"
+          element={
+            <SellerLayout>
+              <SellerPayments />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/reports"
+          element={
+            <SellerLayout>
+              <SellerReports />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/support"
+          element={
+            <SellerLayout>
+              <SellerSupport />
+            </SellerLayout>
+          }
+        />
+        <Route
+          path="/seller/profile"
+          element={
+            <SellerLayout>
+              <SellerProfile />
+            </SellerLayout>
+          }
+        /> */}
 
         {/*
           Admin vendor management — uncomment when AdminVendors page is built:

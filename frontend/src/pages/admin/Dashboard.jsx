@@ -179,34 +179,37 @@ export default function Dashboard() {
   const [subCategories, setSubCategories] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hoveredBar, setHoveredBar] = useState(null); // { index, x, revenue, month }
 
   useEffect(() => {
     Promise.all([
       API("/api/category/all"),
       API("/api/subCategory/all"),
       API("/api/product/all"),
-      API("/api/orders")
+      API("/api/orders?limit=all")
     ]).then(([cat, sub, prod, orderData]) => {
       setCategories(cat.data || []);
       setSubCategories(sub.data || []);
       setProducts(prod.data || []);
-      setOrders(orderData.data || []);
+      setOrders(orderData.orders || []);
       setLoading(false);
     });
   }, []);
 
-  const totalRevenue = products.reduce(
-    (sum, p) => sum + (p.discountPrice || p.price || 0),
-    0,
-  );
-const activeProducts = products.filter((p) => p.status === "Active").length;
+  const totalRevenue = orders
+    .filter((o) => o.orderStatus !== "Cancelled")
+    .reduce((sum, o) => sum + (o.totalPrice || 0), 0);
 
-const pendingOrders = orders.filter((o) => o.orderStatus === "Pending").length;
+  const activeProducts = products.filter((p) => p.status === "Active").length;
 
-const completedOrders = orders.filter(
-  (o) => o.orderStatus === "Delivered",
-).length;
-  // Fake monthly revenue data based on product prices (demo)
+  const pendingOrders = orders.filter((o) => o.orderStatus === "Pending").length;
+
+  const completedOrders = orders.filter(
+    (o) => o.orderStatus === "Delivered",
+  ).length;
+
+  // Real monthly revenue data based on orders of the current year
+  const currentYear = new Date().getFullYear();
   const months = [
     "Jan",
     "Feb",
@@ -221,12 +224,23 @@ const completedOrders = orders.filter(
     "Nov",
     "Dec",
   ];
+
+  const monthlyRevenue = Array(12).fill(0);
+  orders.forEach((o) => {
+    if (o.orderStatus !== "Cancelled") {
+      const d = new Date(o.createdAt);
+      if (d.getFullYear() === currentYear) {
+        const m = d.getMonth();
+        monthlyRevenue[m] += (o.totalPrice || 0);
+      }
+    }
+  });
+
   const chartData = months.map((m, i) => ({
     month: m,
-    revenue: Math.floor(
-      totalRevenue * (0.04 + Math.sin(i) * 0.02 + Math.random() * 0.04),
-    ),
+    revenue: Math.floor(monthlyRevenue[i]),
   }));
+
   const maxRev = Math.max(...chartData.map((d) => d.revenue), 1);
 
   // Top selling products (by price desc as proxy)
@@ -362,8 +376,49 @@ const completedOrders = orders.filter(
               alignItems: "flex-end",
               gap: "6px",
               height: "140px",
+              position: "relative",
             }}
           >
+            {/* Tooltip */}
+            {hoveredBar !== null && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: `calc(${(hoveredBar.index / chartData.length) * 100}% + ${(1 / chartData.length) * 50}%)`,
+                  transform: "translateX(-50%)",
+                  background: "#0f172a",
+                  color: "white",
+                  borderRadius: "8px",
+                  padding: "6px 10px",
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  whiteSpace: "nowrap",
+                  pointerEvents: "none",
+                  zIndex: 10,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                }}
+              >
+                <div style={{ color: "#94a3b8", fontSize: "10px", marginBottom: "2px" }}>
+                  {hoveredBar.month} {new Date().getFullYear()}
+                </div>
+                ₹{hoveredBar.revenue.toLocaleString()}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "-5px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: 0,
+                    height: 0,
+                    borderLeft: "5px solid transparent",
+                    borderRight: "5px solid transparent",
+                    borderTop: "5px solid #0f172a",
+                  }}
+                />
+              </div>
+            )}
+
             {chartData.map((d, i) => (
               <div
                 key={d.month}
@@ -373,7 +428,10 @@ const completedOrders = orders.filter(
                   flexDirection: "column",
                   alignItems: "center",
                   gap: "4px",
+                  cursor: "pointer",
                 }}
+                onMouseEnter={() => setHoveredBar({ index: i, month: d.month, revenue: d.revenue })}
+                onMouseLeave={() => setHoveredBar(null)}
               >
                 <div
                   style={{
@@ -381,13 +439,24 @@ const completedOrders = orders.filter(
                     borderRadius: "4px 4px 0 0",
                     height: `${Math.max((d.revenue / maxRev) * 120, 4)}px`,
                     background:
-                      i === new Date().getMonth()
-                        ? "linear-gradient(180deg,#6366f1,#8b5cf6)"
-                        : "#e0e7ff",
-                    transition: "height 0.5s",
+                      hoveredBar?.index === i
+                        ? "linear-gradient(180deg,#4f46e5,#7c3aed)"
+                        : i === new Date().getMonth()
+                          ? "linear-gradient(180deg,#6366f1,#8b5cf6)"
+                          : "#e0e7ff",
+                    transition: "height 0.5s, background 0.15s",
+                    transform: hoveredBar?.index === i ? "scaleY(1.04)" : "scaleY(1)",
+                    transformOrigin: "bottom",
                   }}
                 />
-                <span style={{ fontSize: "9px", color: "#94a3b8" }}>
+                <span
+                  style={{
+                    fontSize: "9px",
+                    color: hoveredBar?.index === i ? "#6366f1" : "#94a3b8",
+                    fontWeight: hoveredBar?.index === i ? "700" : "400",
+                    transition: "color 0.15s",
+                  }}
+                >
                   {d.month}
                 </span>
               </div>
