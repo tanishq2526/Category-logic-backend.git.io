@@ -356,7 +356,7 @@ export default function GiftCards() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
 
   const API_BASE_URL = "http://localhost:3000/api/giftCard";
 

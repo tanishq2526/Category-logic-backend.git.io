@@ -104,9 +104,7 @@ function Login() {
       if (isVendor) return "Register Your Store";
       return "Create User Account";
     }
-    if (isAdmin) return "Admin Login";
-    if (isVendor) return "Vendor Login";
-    return "User Login";
+    return "Login";
   }, [isAdmin, isVendor, isRegister]);
 
   const updateForm = (key, value) => {
@@ -179,7 +177,9 @@ function Login() {
 
     try {
       const endpoint = isRegister
-        ? `${BASE_URL}/api/auth/register`
+        ? isVendor 
+          ? `${BASE_URL}/api/auth/register-vendor`
+          : `${BASE_URL}/api/auth/register`
         : `${BASE_URL}/api/auth/login`;
 
       const payload = isRegister
@@ -298,67 +298,7 @@ function Login() {
           Sign in or register with the account type you need.
         </p>
 
-        {/* ── Login / Register toggle ── */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "8px",
-            marginBottom: "12px",
-          }}
-        >
-          {["login", "register"].map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => switchMode(item)}
-              style={{
-                border: "none",
-                borderRadius: "10px",
-                padding: "10px 12px",
-                cursor: "pointer",
-                fontWeight: "600",
-                color: mode === item ? "white" : "#475569",
-                background:
-                  mode === item
-                    ? "linear-gradient(135deg, #667eea, #764ba2)"
-                    : "#f1f5f9",
-              }}
-            >
-              {item === "login" ? "Login" : "Register"}
-            </button>
-          ))}
-        </div>
 
-        {/* ── Account type tabs: user / vendor / admin ── */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "8px",
-            marginBottom: "18px",
-          }}
-        >
-          {["user", "vendor"].map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => switchAccountType(item)}
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: "10px",
-                padding: "10px 8px",
-                cursor: "pointer",
-                fontWeight: "600",
-                fontSize: "13px",
-                color: accountType === item ? "#1a1a2e" : "#64748b",
-                background: accountType === item ? "#eef2ff" : "white",
-              }}
-            >
-              {item.charAt(0).toUpperCase() + item.slice(1)}
-            </button>
-          ))}
-        </div>
 
         {/* ── Message banner ── */}
         {message.text && (
@@ -503,8 +443,35 @@ function Login() {
               ? "Please wait..."
               : isRegister
                 ? `Create ${isVendor ? "Vendor" : "User"} Account`
-                : `Login as ${isVendor ? "Vendor" : "User"}`}
+                : `Login`}
           </button>
+
+          {/* Bottom Links */}
+          <div style={{ marginTop: "16px", textAlign: "center", fontSize: "14px", color: "#64748b", display: "flex", flexDirection: "column", gap: "10px" }}>
+            {isRegister ? (
+              <>
+                <div>
+                  {isVendor ? (
+                    <span>Want to buy? <a href="#" onClick={(e) => { e.preventDefault(); switchAccountType("user"); }} style={{ color: "#667eea", textDecoration: "none", fontWeight: 600 }}>Register as User</a></span>
+                  ) : (
+                    <span>Want to sell? <a href="#" onClick={(e) => { e.preventDefault(); switchAccountType("vendor"); }} style={{ color: "#667eea", textDecoration: "none", fontWeight: 600 }}>Register as Vendor</a></span>
+                  )}
+                </div>
+                <div>
+                  Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); switchMode("login"); }} style={{ color: "#667eea", textDecoration: "none", fontWeight: 600 }}>Login</a>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); switchMode("register"); switchAccountType("user"); }} style={{ color: "#667eea", textDecoration: "none", fontWeight: 600 }}>Register as User</a>
+                </div>
+                <div>
+                  Want to sell? <a href="#" onClick={(e) => { e.preventDefault(); switchMode("register"); switchAccountType("vendor"); }} style={{ color: "#667eea", textDecoration: "none", fontWeight: 600 }}>Register as Vendor</a>
+                </div>
+              </>
+            )}
+          </div>
         </form>
       </div>
     </div>

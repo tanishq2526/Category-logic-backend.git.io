@@ -128,7 +128,7 @@ const FILTER_TABS = [
   { label: "🚫 Suspended Vendors", apiValue: "suspended", accent: "#cf1322" },
 ];
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 const TABLE_COLS = [
   "Vendor ID",
   "Name",

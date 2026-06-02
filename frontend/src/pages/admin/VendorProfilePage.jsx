@@ -119,6 +119,34 @@ const VendorProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("ANALISE");
+  const [updating, setUpdating] = useState(false);
+
+  // ── Update vendor status ───────────────────────────────────────────────────
+  const updateStatus = async (newStatus) => {
+    if (!window.confirm(`Are you sure you want to change the status to ${newStatus}?`)) return;
+    setUpdating(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/admin/vendors/${id}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.message || "Failed to update status.");
+        return;
+      }
+      setVendor(data.data);
+    } catch (err) {
+      alert("Network error. Please try again.");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   // ── Fetch vendor data ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -358,9 +386,69 @@ const VendorProfilePage = () => {
                   backgroundColor: "#fff",
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
                 }}
               >
                 <StatusBadge status={vendor.status} />
+                
+                {vendor.status === "pending" && (
+                  <button
+                    onClick={() => updateStatus("active")}
+                    disabled={updating}
+                    style={{
+                      background: "#166534",
+                      color: "#fff",
+                      border: "none",
+                      padding: "6px 12px",
+                      borderRadius: 12,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: updating ? "not-allowed" : "pointer",
+                      opacity: updating ? 0.7 : 1,
+                    }}
+                  >
+                    {updating ? "..." : "Approve"}
+                  </button>
+                )}
+                {vendor.status === "active" && (
+                  <button
+                    onClick={() => updateStatus("suspended")}
+                    disabled={updating}
+                    style={{
+                      background: "#cf1322",
+                      color: "#fff",
+                      border: "none",
+                      padding: "6px 12px",
+                      borderRadius: 12,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: updating ? "not-allowed" : "pointer",
+                      opacity: updating ? 0.7 : 1,
+                    }}
+                  >
+                    {updating ? "..." : "Block / Pause"}
+                  </button>
+                )}
+                {vendor.status === "suspended" && (
+                  <button
+                    onClick={() => updateStatus("active")}
+                    disabled={updating}
+                    style={{
+                      background: "#166534",
+                      color: "#fff",
+                      border: "none",
+                      padding: "6px 12px",
+                      borderRadius: 12,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: updating ? "not-allowed" : "pointer",
+                      opacity: updating ? 0.7 : 1,
+                    }}
+                  >
+                    {updating ? "..." : "Reactivate"}
+                  </button>
+                )}
               </div>
             </div>
             <InfoField label="Join Date" value={formatDate(user.createdAt)} />
@@ -503,24 +591,146 @@ const VendorProfilePage = () => {
             </div>
           )}
 
-          {/* PRODUCTS — placeholder */}
+          {/* PRODUCTS */}
           {activeTab === "PRODUCTS" && (
-            <PlaceholderTab message="Connect to the vendor products API endpoint to show products here." />
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc", textAlign: "left", color: "#64748b", textTransform: "uppercase", fontSize: 12 }}>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Image</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Name</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Price</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Stock</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {!vendor.products || vendor.products.length === 0 ? (
+                    <tr><td colSpan="5" style={{ padding: 32, textAlign: "center", color: "#94a3b8" }}>No products found</td></tr>
+                  ) : (
+                    vendor.products.map(p => (
+                      <tr key={p._id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "12px 16px" }}>
+                          {p.images && p.images[0] ? (
+                            <img src={p.images[0]} alt="product" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 6 }} />
+                          ) : (
+                            <div style={{ width: 40, height: 40, background: "#e2e8f0", borderRadius: 6 }}></div>
+                          )}
+                        </td>
+                        <td style={{ padding: "12px 16px", fontWeight: 500 }}>{p.name}</td>
+                        <td style={{ padding: "12px 16px" }}>₹{p.price}</td>
+                        <td style={{ padding: "12px 16px" }}>{p.stock}</td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <span style={{ color: p.isActive ? "#166534" : "#991b1b", background: p.isActive ? "#dcfce7" : "#fee2e2", padding: "2px 8px", borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
+                            {p.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
 
-          {/* CATEGORY — placeholder */}
+          {/* CATEGORY */}
           {activeTab === "CATEGORY" && (
-            <PlaceholderTab message="Connect to the vendor categories API endpoint to show categories here." />
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc", textAlign: "left", color: "#64748b", textTransform: "uppercase", fontSize: 12 }}>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Name</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Slug</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {!vendor.categories || vendor.categories.length === 0 ? (
+                    <tr><td colSpan="3" style={{ padding: 32, textAlign: "center", color: "#94a3b8" }}>No categories found</td></tr>
+                  ) : (
+                    vendor.categories.map(c => (
+                      <tr key={c._id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "12px 16px", fontWeight: 500 }}>{c.name}</td>
+                        <td style={{ padding: "12px 16px", color: "#64748b" }}>{c.slug}</td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <span style={{ color: c.isActive ? "#166534" : "#991b1b", background: c.isActive ? "#dcfce7" : "#fee2e2", padding: "2px 8px", borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
+                            {c.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
 
-          {/* SUB-CATEGORY — placeholder */}
+          {/* SUB-CATEGORY */}
           {activeTab === "SUB-CATEGORY" && (
-            <PlaceholderTab message="Connect to the vendor sub-categories API endpoint to show sub-categories here." />
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc", textAlign: "left", color: "#64748b", textTransform: "uppercase", fontSize: 12 }}>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Name</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Parent Category</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {!vendor.subCategories || vendor.subCategories.length === 0 ? (
+                    <tr><td colSpan="3" style={{ padding: 32, textAlign: "center", color: "#94a3b8" }}>No sub-categories found</td></tr>
+                  ) : (
+                    vendor.subCategories.map(sc => (
+                      <tr key={sc._id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "12px 16px", fontWeight: 500 }}>{sc.name}</td>
+                        <td style={{ padding: "12px 16px" }}>{sc.category?.name || "—"}</td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <span style={{ color: sc.isActive ? "#166534" : "#991b1b", background: sc.isActive ? "#dcfce7" : "#fee2e2", padding: "2px 8px", borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
+                            {sc.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
 
-          {/* COUPON — placeholder */}
+          {/* COUPON */}
           {activeTab === "COUPON" && (
-            <PlaceholderTab message="Connect to the vendor coupons API endpoint to show coupons here." />
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc", textAlign: "left", color: "#64748b", textTransform: "uppercase", fontSize: 12 }}>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Code</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Discount</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Usage</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Expires</th>
+                    <th style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0" }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {!vendor.coupons || vendor.coupons.length === 0 ? (
+                    <tr><td colSpan="5" style={{ padding: 32, textAlign: "center", color: "#94a3b8" }}>No coupons found</td></tr>
+                  ) : (
+                    vendor.coupons.map(cp => (
+                      <tr key={cp._id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "12px 16px", fontWeight: 700, fontFamily: "monospace" }}>{cp.code}</td>
+                        <td style={{ padding: "12px 16px" }}>{cp.discountType === "percentage" ? `${cp.discountValue}%` : `₹${cp.discountValue}`}</td>
+                        <td style={{ padding: "12px 16px" }}>{cp.usedCount} / {cp.maxUses || "∞"}</td>
+                        <td style={{ padding: "12px 16px" }}>{cp.expiresAt ? new Date(cp.expiresAt).toLocaleDateString() : "Never"}</td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <span style={{ color: cp.isActive ? "#166534" : "#991b1b", background: cp.isActive ? "#dcfce7" : "#fee2e2", padding: "2px 8px", borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
+                            {cp.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
 
           {/* ORDERS — placeholder */}

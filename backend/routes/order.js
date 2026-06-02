@@ -226,7 +226,7 @@ router.get("/", protect, requireAuth('admin'), async (req, res) => {
       .sort({ createdAt: -1 });
 
     const isAll = req.query.limit === "all";
-    const pageSize = isAll ? count : 20;
+    const pageSize = isAll ? count : 10;
     const page = isAll ? 1 : Math.max(1, Number(req.query.pageNumber) || 1);
 
     if (!isAll) {

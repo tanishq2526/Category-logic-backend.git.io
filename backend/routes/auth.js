@@ -92,6 +92,13 @@ router.post("/register", registerLimiter, async (req, res) => {
   try {
     const { name, email, password, phone, role } = req.body;
 
+    if (role === "vendor") {
+      return res.status(400).json({
+        success: false,
+        message: "Vendors must use the /register-vendor endpoint",
+      });
+    }
+
     if (!name?.trim() || !email?.trim() || !password) {
       return res
         .status(400)
@@ -126,20 +133,6 @@ router.post("/register", registerLimiter, async (req, res) => {
       role: role,
       status: "active", // default status for new users; admin can override to "active" or "deactive"
     });
-
-    const slug = await generateUniqueSlug(shopName.trim());
-
-    const [vendor] = await Vendor.create(
-      [
-        {
-          user: user._id,
-          shopName: shopName.trim(),
-          slug,
-          status: "pending", // admin must approve before vendor can log in
-        },
-      ],
-      { session },
-    );
 
     return sendAuthResponse(res, 201, "User registered successfully", newUser);
   } catch (error) {
@@ -348,37 +341,37 @@ router.post("/login", loginLimiter, async (req, res) => {
     }
 
     // Vendor-specific gate: block pending/suspended accounts at login
-    // if (user.role === "vendor") {
-    //   const vendor = user.vendorProfile;
+    if (user.role === "vendor") {
+      const vendor = user.vendorProfile;
 
-    //   if (!vendor) {
-    //     // User has vendor role but no Vendor document — data integrity issue
-    //     console.error(`Vendor profile missing for user ${user._id}`);
-    //     return res
-    //       .status(403)
-    //       .json({
-    //         success: false,
-    //         message: "Vendor profile not found. Contact support.",
-    //       });
-    //   }
+      if (!vendor) {
+        // User has vendor role but no Vendor document — data integrity issue
+        console.error(`Vendor profile missing for user ${user._id}`);
+        return res
+          .status(403)
+          .json({
+            success: false,
+            message: "Vendor profile not found. Contact support.",
+          });
+      }
 
-    //   if (vendor.status === "pending") {
-    //     return res.status(403).json({
-    //       success: false,
-    //       message: "Your vendor account is pending approval.",
-    //     });
-    //   }
+      if (vendor.status === "pending") {
+        return res.status(403).json({
+          success: false,
+          message: "Your vendor account is pending approval.",
+        });
+      }
 
-    //   if (vendor.status === "suspended") {
-    //     return res.status(403).json({
-    //       success: false,
-    //       message: "Your vendor account has been suspended. Contact support.",
-    //     });
-    //   }
+      if (vendor.status === "suspended") {
+        return res.status(403).json({
+          success: false,
+          message: "Your vendor account has been suspended. Contact support.",
+        });
+      }
 
-    //   // Active vendor: include vendor profile in response
-    //   return sendAuthResponse(res, 200, "Login successful", user, vendor);
-    // }
+      // Active vendor: include vendor profile in response
+      return sendAuthResponse(res, 200, "Login successful", user, vendor);
+    }
 
     // Admin and regular users: no vendor context needed
     return sendAuthResponse(res, 200, "Login successful", user);

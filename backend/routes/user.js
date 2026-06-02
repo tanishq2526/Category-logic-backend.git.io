@@ -108,7 +108,7 @@ router.get("/stats", protect, requireAuth('admin'), async (req, res) => {
 //   ?status=Hot|Cold|Deactive
 router.get("/", protect, requireAuth('admin'), async (req, res) => {
   try {
-    const pageSize = Number(process.env.ADMIN_PAGE_SIZE) || 20;
+    const pageSize = 10;
     const page     = Math.max(1, Number(req.query.pageNumber) || 1);
 
     // ── Build DB filter ─────────────────────────────────────────────────────

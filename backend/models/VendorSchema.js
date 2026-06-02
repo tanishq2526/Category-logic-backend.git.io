@@ -6,7 +6,7 @@ const VendorSchema = new mongoose.Schema(
     // This is the authoritative link — never store auth data here.
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Vendor", //or user ?
+      ref: "User",
       required: true,
       unique: true, // one vendor profile per user account
     },
