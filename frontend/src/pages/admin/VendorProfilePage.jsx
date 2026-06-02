@@ -1,149 +1,413 @@
-import React, { useState } from "react";
+/*
+ * pages/admin/VendorProfilePage.jsx
+ *
+ * Shows the full detail view for a single vendor.
+ * Data is fetched from:  GET /api/admin/vendors/:id
+ *
+ * The :id comes from useParams() and is the vendor's MongoDB _id,
+ * passed through from VendorManagementPage when "View Profile →" is clicked.
+ *
+ * API response shape (vendor document with populated user):
+ *   data: {
+ *     _id, shopName, slug, description, logo, banner, status,
+ *     commissionRate, address, city, pincode,
+ *     businessPhone, businessEmail, websiteUrl,
+ *     createdAt, updatedAt,
+ *     user: { _id, name, email, phone, createdAt }
+ *   }
+ *
+ * Tabs that show real data:   BUSINESS INFORMATION, DETAILS
+ * Tabs that are placeholders: ANALISE, PRODUCTS, CATEGORY, SUB-CATEGORY, COUPON, ORDERS
+ * (Those tabs would need their own API endpoints — wire them up when ready.)
+ */
+
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const avatarFallback = (name) =>
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "V")}&background=1e293b&color=fff&size=256&bold=true`;
+
+// Format an ISO date string into a readable date, e.g. "28 May 2026"
+const formatDate = (iso) => {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+// ─── Status badge ─────────────────────────────────────────────────────────────
+
+const STATUS_STYLES = {
+  active: { bg: "#dcfce7", color: "#166534", label: "Active" },
+  suspended: { bg: "#fee2e2", color: "#991b1b", label: "Suspended" },
+  pending: { bg: "#fef9c3", color: "#854d0e", label: "Pending" },
+};
+
+const StatusBadge = ({ status }) => {
+  const s = STATUS_STYLES[status] || STATUS_STYLES.pending;
+  return (
+    <span
+      style={{
+        padding: "4px 14px",
+        borderRadius: 20,
+        fontSize: 13,
+        fontWeight: 700,
+        background: s.bg,
+        color: s.color,
+      }}
+    >
+      {s.label}
+    </span>
+  );
+};
+
+// ─── Info field (label + rounded box) ────────────────────────────────────────
+
+const InfoField = ({ label, value }) => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <span
+      style={{
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#334155",
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
+      }}
+    >
+      {label}
+    </span>
+    <div
+      style={{
+        border: "1px solid #cbd5e1",
+        borderRadius: 24,
+        padding: "12px 20px",
+        fontSize: 15,
+        color: "#0f172a",
+        backgroundColor: "#fff",
+      }}
+    >
+      {value || "—"}
+    </div>
+  </div>
+);
+
+// ─── Tab definitions ──────────────────────────────────────────────────────────
+
+const TABS = [
+  "ANALISE",
+  "BUSINESS INFORMATION",
+  "PRODUCTS",
+  "CATEGORY",
+  "SUB-CATEGORY",
+  "COUPON",
+  "ORDERS",
+  "DETAILS",
+];
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 const VendorProfilePage = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // MongoDB _id from the URL
   const navigate = useNavigate();
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  const [vendor, setVendor] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("ANALISE");
 
-  const tabs = [
-    "ANALISE",
-    "BUSINESS INFORMATION",
-    "PRODUCTS",
-    "CATEGORY",
-    "SUB-CATEGORY",
-    "COUPON",
-    "ORDERS",
-    "DETAILS",
-  ];
+  // ── Fetch vendor data ──────────────────────────────────────────────────────
+  useEffect(() => {
+    const fetchVendor = async () => {
+      setLoading(true);
+      setError("");
 
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await fetch(`/api/admin/vendors/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          setError(data.message || "Failed to load vendor.");
+          return;
+        }
+
+        setVendor(data.data);
+      } catch (err) {
+        setError("Network error. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVendor();
+  }, [id]);
+
+  // ── Loading state ──────────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundColor: "#f1f5f9",
+          padding: "32px",
+          fontFamily: "'Inter', 'Segoe UI', sans-serif",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ textAlign: "center", color: "#64748b" }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              margin: "0 auto 16px",
+              border: "4px solid #e2e8f0",
+              borderTopColor: "#6366f1",
+              animation: "spin 0.8s linear infinite",
+            }}
+          />
+          <p style={{ margin: 0, fontSize: 15 }}>Loading vendor profile…</p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // ── Error state ────────────────────────────────────────────────────────────
+  if (error) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundColor: "#f1f5f9",
+          padding: "32px",
+          fontFamily: "'Inter', 'Segoe UI', sans-serif",
+        }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#64748b",
+            fontWeight: 600,
+            cursor: "pointer",
+            marginBottom: 20,
+            fontSize: 14,
+          }}
+        >
+          ← Back to Vendors
+        </button>
+        <div
+          style={{
+            background: "#fff1f0",
+            border: "1px solid #ffa39e",
+            borderRadius: 12,
+            padding: "24px",
+            color: "#cf1322",
+            fontSize: 15,
+          }}
+        >
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  // Destructure the vendor and its populated user for convenience
+  const user = vendor?.user || {};
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{
-      minHeight: "100vh",
-      backgroundColor: "#f1f5f9",
-      padding: "32px",
-      fontFamily: "'Inter', 'Segoe UI', sans-serif",
-      color: "#000",
-    }}>
-      {/* Back Button */}
-      <button 
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#f1f5f9",
+        padding: "32px",
+        fontFamily: "'Inter', 'Segoe UI', sans-serif",
+        color: "#000",
+      }}
+    >
+      {/* Back button */}
+      <button
         onClick={() => navigate(-1)}
         style={{
-          background: "none", border: "none",
-          fontSize: "14px", fontWeight: "600",
-          cursor: "pointer", marginBottom: "20px",
-          color: "#64748b", display: "flex", alignItems: "center", gap: "6px"
+          background: "none",
+          border: "none",
+          fontSize: 14,
+          fontWeight: 600,
+          cursor: "pointer",
+          marginBottom: 20,
+          color: "#64748b",
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
         }}
       >
         ← Back to Vendors
       </button>
 
-      {/* Main Container */}
-      <div style={{
-        backgroundColor: "#fff",
-        borderRadius: "16px",
-        border: "1px solid #e2e8f0",
-        overflow: "hidden",
-        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "80vh"
-      }}>
-        
-        {/* 1. TOP CONTAINER (Vendor Profile Section) */}
-        <div style={{
-          padding: "32px",
+      {/* ── Main card ── */}
+      <div
+        style={{
+          backgroundColor: "#fff",
+          borderRadius: 16,
+          border: "1px solid #e2e8f0",
+          overflow: "hidden",
+          boxShadow: "0 4px 6px -1px rgba(0,0,0,.05)",
           display: "flex",
-          gap: "32px",
-          borderBottom: "1px solid #e2e8f0",
-          backgroundColor: "#f8fafc"
-        }}>
-          {/* Left side: Profile Photo */}
-          <div style={{
-            width: "160px",
-            height: "200px",
-            border: "1.5px solid #cbd5e1",
-            borderRadius: "12px",
+          flexDirection: "column",
+          minHeight: "80vh",
+        }}
+      >
+        {/* ── TOP: Profile header ── */}
+        <div
+          style={{
+            padding: 32,
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#fff",
-            flexShrink: 0
-          }}>
-            <span style={{
-              fontSize: "15px",
-              fontWeight: "600",
-              color: "#475569",
-              textAlign: "center",
-              lineHeight: "1.4"
-            }}>
-              PROFILE<br />PHOTO
-            </span>
+            gap: 32,
+            borderBottom: "1px solid #e2e8f0",
+            backgroundColor: "#f8fafc",
+          }}
+        >
+          {/* Logo / avatar */}
+          <div
+            style={{
+              width: 160,
+              height: 200,
+              border: "1.5px solid #cbd5e1",
+              borderRadius: 12,
+              overflow: "hidden",
+              flexShrink: 0,
+              backgroundColor: "#fff",
+            }}
+          >
+            <img
+              src={vendor.logo || avatarFallback(user.name)}
+              alt={vendor.shopName}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
           </div>
 
-          {/* Right side: Text fields */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "20px",
-            flex: 1
-          }}>
-            {[
-              { label: "VENDOR NAME", value: "Sandeep" },
-              { label: "FIRM NAME", value: "Sandeep Enterprises" },
-              { label: "VENDOR ID", value: "#BBE4D781" },
-              { label: "EMAIL", value: "testuser2@gmail.com" },
-              { label: "PHONE NO.", value: "+91 9876543210" },
-              { label: "JOIN DATE", value: "28 May 2026" }
-            ].map((field, index) => (
-              <div key={index} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <span style={{ fontSize: "14px", fontWeight: "600", color: "#334155" }}>
-                  {field.label}
-                </span>
-                <div style={{
+          {/* Info fields grid */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 20,
+              flex: 1,
+            }}
+          >
+            <InfoField label="Vendor Name" value={user.name} />
+            <InfoField label="Shop Name" value={vendor.shopName} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#334155",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}
+              >
+                Vendor ID
+              </span>
+              <div
+                style={{
                   border: "1px solid #cbd5e1",
-                  borderRadius: "24px",
+                  borderRadius: 24,
                   padding: "12px 20px",
-                  fontSize: "15px",
-                  color: "#0f172a",
-                  backgroundColor: "#fff"
-                }}>
-                  {field.value}
-                </div>
+                  fontSize: 13,
+                  color: "#94a3b8",
+                  backgroundColor: "#fff",
+                  fontFamily: "monospace",
+                }}
+              >
+                {vendor._id}
               </div>
-            ))}
+            </div>
+            <InfoField label="Email" value={user.email} />
+            <InfoField label="Phone" value={user.phone} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#334155",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}
+              >
+                Status
+              </span>
+              <div
+                style={{
+                  border: "1px solid #cbd5e1",
+                  borderRadius: 24,
+                  padding: "10px 20px",
+                  backgroundColor: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <StatusBadge status={vendor.status} />
+              </div>
+            </div>
+            <InfoField label="Join Date" value={formatDate(user.createdAt)} />
+            <InfoField
+              label="Commission"
+              value={`${vendor.commissionRate ?? 10}%`}
+            />
           </div>
         </div>
 
-        {/* 2. MIDDLE NAVIGATION BAR (Segmented Tab Bar) */}
-        <div style={{
-          display: "flex",
-          borderBottom: "1px solid #e2e8f0",
-          backgroundColor: "#fff"
-        }}>
-          {tabs.map((tab, index) => (
+        {/* ── MIDDLE: Tab bar ── */}
+        <div
+          style={{
+            display: "flex",
+            borderBottom: "1px solid #e2e8f0",
+            backgroundColor: "#fff",
+            overflowX: "auto",
+          }}
+        >
+          {TABS.map((tab, index) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               style={{
                 flex: 1,
+                minWidth: 100,
                 padding: "16px 8px",
-                fontSize: "12px",
-                fontWeight: activeTab === tab ? "700" : "600",
+                fontSize: 11,
+                fontWeight: activeTab === tab ? 700 : 600,
                 color: activeTab === tab ? "#000" : "#64748b",
                 backgroundColor: activeTab === tab ? "#f8fafc" : "#fff",
                 border: "none",
-                borderRight: index < tabs.length - 1 ? "1px solid #e2e8f0" : "none",
-                borderBottom: activeTab === tab ? "2px solid #000" : "2px solid transparent",
+                borderRight:
+                  index < TABS.length - 1 ? "1px solid #e2e8f0" : "none",
+                borderBottom:
+                  activeTab === tab
+                    ? "2px solid #000"
+                    : "2px solid transparent",
                 cursor: "pointer",
                 textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                transition: "all 0.15s ease",
+                letterSpacing: 0.5,
+                transition: "all 0.15s",
                 textAlign: "center",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                minHeight: "56px"
+                minHeight: 56,
               }}
             >
               {tab}
@@ -151,177 +415,192 @@ const VendorProfilePage = () => {
           ))}
         </div>
 
-        {/* 3. BOTTOM CONTAINER (Data Display Area) */}
-        <div style={{
-          flex: 1,
-          padding: "32px",
-          backgroundColor: "#fff",
-          display: "flex",
-          flexDirection: "column",
-          overflowY: "auto"
-        }}>
-          
+        {/* ── BOTTOM: Tab content ── */}
+        <div
+          style={{
+            flex: 1,
+            padding: 32,
+            backgroundColor: "#fff",
+            overflowY: "auto",
+          }}
+        >
+          {/* ANALISE — placeholder (no analytics API yet) */}
           {activeTab === "ANALISE" && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "24px" }}>
-              <div style={{ padding: "24px", borderRadius: "16px", border: "1px solid #e2e8f0", backgroundColor: "#f8fafc" }}>
-                <h3 style={{ margin: "0 0 8px 0", color: "#64748b", fontSize: "14px", textTransform: "uppercase" }}>Total Revenue</h3>
-                <p style={{ margin: 0, fontSize: "28px", fontWeight: "bold", color: "#0f172a" }}>₹ 45,230</p>
-              </div>
-              <div style={{ padding: "24px", borderRadius: "16px", border: "1px solid #e2e8f0", backgroundColor: "#f8fafc" }}>
-                <h3 style={{ margin: "0 0 8px 0", color: "#64748b", fontSize: "14px", textTransform: "uppercase" }}>Total Orders</h3>
-                <p style={{ margin: 0, fontSize: "28px", fontWeight: "bold", color: "#0f172a" }}>124</p>
-              </div>
-              <div style={{ padding: "24px", borderRadius: "16px", border: "1px solid #e2e8f0", backgroundColor: "#f8fafc" }}>
-                <h3 style={{ margin: "0 0 8px 0", color: "#64748b", fontSize: "14px", textTransform: "uppercase" }}>Average Rating</h3>
-                <p style={{ margin: 0, fontSize: "28px", fontWeight: "bold", color: "#0f172a" }}>4.8 ★</p>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "BUSINESS INFORMATION" && (
-             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
-                {[
-                  { label: "GST IN", value: "22AAAAA0000A1Z5" },
-                  { label: "PAN NUMBER", value: "ABCDE1234F" },
-                  { label: "REGISTERED ADDRESS", value: "123 Business Street, Tech Park, Mumbai" },
-                  { label: "BANK ACCOUNT", value: "XXXX-XXXX-XXXX-1234" }
-                ].map((info, i) => (
-                  <div key={i} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <span style={{ fontSize: "14px", fontWeight: "600", color: "#334155" }}>{info.label}</span>
-                    <div style={{ border: "1px solid #cbd5e1", borderRadius: "16px", padding: "12px 16px", backgroundColor: "#fff", color: "#0f172a", fontSize: "15px" }}>
-                      {info.value}
-                    </div>
-                  </div>
-                ))}
-             </div>
-          )}
-
-          {activeTab === "PRODUCTS" && (
-            <div style={{ border: "1px solid #e2e8f0", borderRadius: "16px", overflow: "hidden" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "14px" }}>
-                <thead style={{ backgroundColor: "#f8fafc" }}>
-                  <tr>
-                    <th style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#64748b", fontWeight: "600" }}>Product Name</th>
-                    <th style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#64748b", fontWeight: "600" }}>Price</th>
-                    <th style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#64748b", fontWeight: "600" }}>Stock</th>
-                    <th style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#64748b", fontWeight: "600" }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { name: "Wireless Headphones", price: "₹ 1,999", stock: "45", status: "Active" },
-                    { name: "Smart Watch", price: "₹ 2,499", stock: "12", status: "Low Stock" },
-                    { name: "Bluetooth Speaker", price: "₹ 999", stock: "0", status: "Out of Stock" }
-                  ].map((prod, i) => (
-                    <tr key={i}>
-                      <td style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", fontWeight: "500" }}>{prod.name}</td>
-                      <td style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#475569" }}>{prod.price}</td>
-                      <td style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#475569" }}>{prod.stock}</td>
-                      <td style={{ padding: "16px", borderBottom: "1px solid #e2e8f0" }}>
-                        <span style={{ 
-                          padding: "4px 8px", borderRadius: "12px", fontSize: "12px", fontWeight: "600",
-                          backgroundColor: prod.status === "Active" ? "#dcfce7" : prod.status === "Low Stock" ? "#fef08a" : "#fee2e2",
-                          color: prod.status === "Active" ? "#166534" : prod.status === "Low Stock" ? "#854d0e" : "#991b1b"
-                        }}>
-                          {prod.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {activeTab === "CATEGORY" && (
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-              {["Electronics", "Accessories", "Gadgets", "Smart Home"].map((cat, i) => (
-                <span key={i} style={{ padding: "10px 20px", backgroundColor: "#f8fafc", borderRadius: "20px", border: "1px solid #cbd5e1", fontWeight: "600", color: "#334155" }}>
-                  {cat}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {activeTab === "SUB-CATEGORY" && (
-             <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-             {["Audio", "Wearables", "Speakers", "Lighting"].map((sub, i) => (
-               <span key={i} style={{ padding: "10px 20px", backgroundColor: "#fff", borderRadius: "20px", border: "1px dashed #cbd5e1", fontWeight: "600", color: "#334155" }}>
-                 {sub}
-               </span>
-             ))}
-           </div>
-          )}
-
-          {activeTab === "COUPON" && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 24,
+              }}
+            >
               {[
-                { code: "FESTIVE50", discount: "50% OFF", expiry: "31 Dec 2026" },
-                { code: "NEWVENDOR20", discount: "20% OFF", expiry: "30 Jun 2026" }
-              ].map((coup, i) => (
-                <div key={i} style={{ border: "2px dashed #cbd5e1", borderRadius: "16px", padding: "24px", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#f8fafc" }}>
-                  <div>
-                    <h4 style={{ margin: "0 0 6px 0", color: "#0f172a", fontSize: "20px", letterSpacing: "1px" }}>{coup.code}</h4>
-                    <span style={{ fontSize: "14px", color: "#64748b" }}>Expires: {coup.expiry}</span>
-                  </div>
-                  <span style={{ fontSize: "24px", fontWeight: "bold", color: "#059669" }}>{coup.discount}</span>
+                { label: "Total Revenue", value: "—" },
+                { label: "Total Orders", value: "—" },
+                { label: "Average Rating", value: "—" },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  style={{
+                    padding: 24,
+                    borderRadius: 16,
+                    border: "1px solid #e2e8f0",
+                    backgroundColor: "#f8fafc",
+                  }}
+                >
+                  <h3
+                    style={{
+                      margin: "0 0 8px",
+                      color: "#64748b",
+                      fontSize: 13,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {stat.label}
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 28,
+                      fontWeight: "bold",
+                      color: "#94a3b8",
+                    }}
+                  >
+                    {stat.value}
+                  </p>
                 </div>
               ))}
-            </div>
-          )}
-
-          {activeTab === "ORDERS" && (
-            <div style={{ border: "1px solid #e2e8f0", borderRadius: "16px", overflow: "hidden" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "14px" }}>
-                <thead style={{ backgroundColor: "#f8fafc" }}>
-                  <tr>
-                    <th style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#64748b", fontWeight: "600" }}>Order ID</th>
-                    <th style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#64748b", fontWeight: "600" }}>Date</th>
-                    <th style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#64748b", fontWeight: "600" }}>Total</th>
-                    <th style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#64748b", fontWeight: "600" }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { id: "#ORD-9912", date: "28 May 2026", total: "₹ 1,999", status: "Delivered" },
-                    { id: "#ORD-9913", date: "29 May 2026", total: "₹ 4,998", status: "Processing" }
-                  ].map((ord, i) => (
-                    <tr key={i}>
-                      <td style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", fontWeight: "500", fontFamily: "monospace" }}>{ord.id}</td>
-                      <td style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#475569" }}>{ord.date}</td>
-                      <td style={{ padding: "16px", borderBottom: "1px solid #e2e8f0", color: "#475569" }}>{ord.total}</td>
-                      <td style={{ padding: "16px", borderBottom: "1px solid #e2e8f0" }}>
-                         <span style={{ 
-                          padding: "4px 8px", borderRadius: "12px", fontSize: "12px", fontWeight: "600",
-                          backgroundColor: ord.status === "Delivered" ? "#dcfce7" : "#eff6ff",
-                          color: ord.status === "Delivered" ? "#166534" : "#1d4ed8"
-                        }}>
-                          {ord.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {activeTab === "DETAILS" && (
-            <div style={{ padding: "24px", border: "1px solid #e2e8f0", borderRadius: "16px", backgroundColor: "#f8fafc" }}>
-              <h3 style={{ margin: "0 0 16px 0", color: "#0f172a", fontSize: "16px" }}>Additional Notes</h3>
-              <p style={{ color: "#475569", lineHeight: "1.6", fontSize: "15px", margin: 0 }}>
-                This vendor specializes in high-quality electronic accessories and wearables. 
-                They have consistently maintained a high rating and low return rate over the past 6 months.
-                Priority support is enabled for this account.
+              <p
+                style={{
+                  gridColumn: "1/-1",
+                  color: "#94a3b8",
+                  fontSize: 13,
+                  margin: 0,
+                }}
+              >
+                Analytics coming soon — wire up an analytics API endpoint to
+                populate this tab.
               </p>
             </div>
           )}
 
-        </div>
+          {/* BUSINESS INFORMATION — real data from the vendor document */}
+          {activeTab === "BUSINESS INFORMATION" && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 24,
+              }}
+            >
+              <InfoField label="Shop Description" value={vendor.description} />
+              <InfoField label="Website" value={vendor.websiteUrl} />
+              <InfoField label="Business Email" value={vendor.businessEmail} />
+              <InfoField label="Business Phone" value={vendor.businessPhone} />
+              <InfoField label="Address" value={vendor.address} />
+              <InfoField label="City" value={vendor.city} />
+              <InfoField label="Pincode" value={vendor.pincode} />
+              <InfoField label="Shop Slug" value={vendor.slug} />
+            </div>
+          )}
 
+          {/* PRODUCTS — placeholder */}
+          {activeTab === "PRODUCTS" && (
+            <PlaceholderTab message="Connect to the vendor products API endpoint to show products here." />
+          )}
+
+          {/* CATEGORY — placeholder */}
+          {activeTab === "CATEGORY" && (
+            <PlaceholderTab message="Connect to the vendor categories API endpoint to show categories here." />
+          )}
+
+          {/* SUB-CATEGORY — placeholder */}
+          {activeTab === "SUB-CATEGORY" && (
+            <PlaceholderTab message="Connect to the vendor sub-categories API endpoint to show sub-categories here." />
+          )}
+
+          {/* COUPON — placeholder */}
+          {activeTab === "COUPON" && (
+            <PlaceholderTab message="Connect to the vendor coupons API endpoint to show coupons here." />
+          )}
+
+          {/* ORDERS — placeholder */}
+          {activeTab === "ORDERS" && (
+            <PlaceholderTab message="Connect to the vendor orders API endpoint to show orders here." />
+          )}
+
+          {/* DETAILS — real data: timestamps and commission */}
+          {activeTab === "DETAILS" && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 24,
+              }}
+            >
+              <InfoField
+                label="Registered On"
+                value={formatDate(vendor.createdAt)}
+              />
+              <InfoField
+                label="Last Updated"
+                value={formatDate(vendor.updatedAt)}
+              />
+              <InfoField
+                label="Commission Rate"
+                value={`${vendor.commissionRate ?? 10}%`}
+              />
+              <InfoField label="Account Status" value={vendor.status} />
+              {vendor.banner && (
+                <div style={{ gridColumn: "1/-1" }}>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: "#334155",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                      display: "block",
+                      marginBottom: 8,
+                    }}
+                  >
+                    Shop Banner
+                  </span>
+                  <img
+                    src={vendor.banner}
+                    alt="banner"
+                    style={{
+                      width: "100%",
+                      maxHeight: 200,
+                      objectFit: "cover",
+                      borderRadius: 12,
+                      border: "1px solid #e2e8f0",
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
+
+// ─── Reusable placeholder tab ─────────────────────────────────────────────────
+
+const PlaceholderTab = ({ message }) => (
+  <div
+    style={{
+      padding: 32,
+      border: "1px dashed #cbd5e1",
+      borderRadius: 16,
+      textAlign: "center",
+      color: "#94a3b8",
+      backgroundColor: "#f8fafc",
+    }}
+  >
+    <p style={{ margin: 0, fontSize: 14 }}>{message}</p>
+  </div>
+);
 
 export default VendorProfilePage;

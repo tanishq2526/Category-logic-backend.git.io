@@ -16,7 +16,7 @@ import express from "express";
 import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
-import { protect, admin } from "../middleware/authMiddleware.js";
+import { protect, requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -206,7 +206,7 @@ router.get("/myorders", protect, async (req, res) => {
 // ─── GET /api/orders ──────────────────────────────────────────────────────────
 // @desc    Get ALL orders — admin — with pagination + optional ?status= filter
 // @access  Private/Admin
-router.get("/", protect, admin, async (req, res) => {
+router.get("/", protect, requireAuth('admin'), async (req, res) => {
   try {
     const filter = {};
     if (req.query.status) filter.orderStatus = req.query.status;
@@ -387,7 +387,7 @@ router.put("/:id/cancel", protect, async (req, res) => {
 // @desc    Admin updates order status
 //          Side-effects: delivered flag, COD auto-pay, cancelled stock restore
 // @access  Private/Admin
-router.put("/:id/status", protect, admin, async (req, res) => {
+router.put("/:id/status", protect, requireAuth('admin'), async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: "Invalid order ID format" });
@@ -471,7 +471,7 @@ export default router;
 // import mongoose from "mongoose";
 // import Order from "../models/Order.js";
 // import Product from "../models/Product.js";
-// import { protect, admin } from "../middleware/authMiddleware.js";
+// import { protect, requireAuth } from '../middleware/authMiddleware.js';
 
 // const router = express.Router();
 
@@ -668,7 +668,7 @@ export default router;
 // // ─── GET /api/orders ──────────────────────────────────────────────────────────
 // // @desc    Get ALL orders with pagination + optional ?status= filter (admin)
 // // @access  Private/Admin
-// router.get("/", protect, admin, async (req, res) => {
+// router.get("/", protect, requireAuth('admin'), async (req, res) => {
 //   try {
 //     const pageSize = 20;
 //     const page = Math.max(1, Number(req.query.pageNumber) || 1);
@@ -851,7 +851,7 @@ export default router;
 // // @desc    Admin updates order status
 // //          Handles: Delivered flag, COD auto-pay, Cancelled stock restore
 // // @access  Private/Admin
-// router.put("/:id/status", protect, admin, async (req, res) => {
+// router.put("/:id/status", protect, requireAuth('admin'), async (req, res) => {
 //   try {
 //     if (!isValidObjectId(req.params.id)) {
 //       return res.status(400).json({ message: "Invalid order ID format" });
@@ -943,7 +943,7 @@ export default router;
 // // import express from "express";
 // // import Order from "../models/Order.js";
 // // import Product from "../models/Product.js";
-// // import { protect, admin } from "../middleware/authMiddleware.js";
+// // import { protect, requireAuth } from '../middleware/authMiddleware.js';
 
 // // const router = express.Router();
 
@@ -1105,7 +1105,7 @@ export default router;
 // // // @desc    Get all orders with Pagination
 // // // @route   GET /api/orders
 // // // @access  Private/Admin
-// // router.get("/", protect, admin, async (req, res) => {
+// // router.get("/", protect, requireAuth('admin'), async (req, res) => {
 // //   try {
 // //     // PAGINATION SETUP
 // //     const pageSize = 20; // Admins usually want to see more items per page
@@ -1135,7 +1135,7 @@ export default router;
 // // // @desc    Update order status
 // // // @route   PUT /api/orders/:id/status
 // // // @access  Private/Admin
-// // router.put("/:id/status", protect, admin, async (req, res) => {
+// // router.put("/:id/status", protect, requireAuth('admin'), async (req, res) => {
 // //   try {
 // //     const order = await Order.findById(req.params.id);
 
