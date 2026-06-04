@@ -12,8 +12,8 @@
  */
 
 import slugify from "slugify";
-import VendorSubCategory from "../../models/vendor/VendorSubCategory.js";
-import VendorCategory from "../../models/vendor/VendorCategory.js";
+import VendorSubCategory from "../../models/vendor/vendorSubCategory.js";
+import VendorCategory from "../../models/vendor/vendorCategory.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // @route   GET /api/vendor/:vendorSlug/subcategories

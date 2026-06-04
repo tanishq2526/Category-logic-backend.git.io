@@ -14,9 +14,9 @@
 
 import path from "path";
 import slugify from "slugify";
-import VendorProduct from "../../models/vendor/VendorProduct.js";
-import VendorCategory from "../../models/vendor/VendorCategory.js";
-import VendorSubCategory from "../../models/vendor/VendorSubCategory.js";
+import VendorProduct from "../../models/vendor/vendorProduct.js";
+import VendorCategory from "../../models/vendor/vendorCategory.js";
+import VendorSubCategory from "../../models/vendor/vendorSubCategory.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // @route   GET /api/vendor/:vendorSlug/products

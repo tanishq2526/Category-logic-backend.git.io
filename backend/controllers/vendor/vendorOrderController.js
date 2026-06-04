@@ -1,5 +1,5 @@
 import Order from "../../models/Order.js";
-import VendorProduct from "../../models/vendor/VendorProduct.js";
+import VendorProduct from "../../models/vendor/vendorProduct.js";
 
 // @route   GET /api/vendor/:vendorSlug/orders
 // @desc    Get all orders containing products belonging to this vendor

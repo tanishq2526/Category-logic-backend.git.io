@@ -13,7 +13,7 @@
  *   - req.vendorId = vendor's _id
  */
 
-import VendorCoupon from "../../models/vendor/VendorCoupon.js";
+import VendorCoupon from "../../models/vendor/vendorCoupon.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // @route   GET /api/vendor/:vendorSlug/coupons

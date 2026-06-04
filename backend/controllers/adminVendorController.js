@@ -15,6 +15,10 @@
 import mongoose from "mongoose";
 import Vendor from "../models/VendorSchema.js";
 import User from "../models/User.js";
+import VendorProduct from "../models/vendor/vendorProduct.js";
+import VendorCategory from "../models/vendor/vendorCategory.js";
+import VendorSubCategory from "../models/vendor/vendorSubCategory.js";
+import VendorCoupon from "../models/vendor/vendorCoupon.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // @route   GET /api/admin/vendors
@@ -83,11 +87,13 @@ export const getAllVendors = async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 export const getVendorById = async (req, res) => {
   try {
-    const vendor = await Vendor.findById(req.params.id).populate(
-      "user",
-      "name email phone createdAt adminStatusOverride",
-    );
-    // populate → replaces the `user` ObjectId with the actual User document fields
+    const [vendor, products, categories, subCategories, coupons] = await Promise.all([
+      Vendor.findById(req.params.id).populate("user", "name email phone createdAt adminStatusOverride"),
+      VendorProduct.find({ vendor: req.params.id }).populate("category", "name").populate("subCategory", "name"),
+      VendorCategory.find({ vendor: req.params.id }),
+      VendorSubCategory.find({ vendor: req.params.id }).populate("category", "name"),
+      VendorCoupon.find({ vendor: req.params.id })
+    ]);
 
     if (!vendor) {
       return res
@@ -95,7 +101,16 @@ export const getVendorById = async (req, res) => {
         .json({ success: false, message: "Vendor not found" });
     }
 
-    return res.status(200).json({ success: true, data: vendor });
+    return res.status(200).json({ 
+      success: true, 
+      data: {
+        ...vendor.toObject(),
+        products,
+        categories,
+        subCategories,
+        coupons
+      } 
+    });
   } catch (error) {
     console.error("getVendorById error:", error);
     return res

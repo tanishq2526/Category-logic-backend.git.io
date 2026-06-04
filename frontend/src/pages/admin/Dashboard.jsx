@@ -120,7 +120,7 @@ function StatCard({ label, value, sub, color, onClick }) {
   );
 }
 
-function MiniBar({ label, value, max, color }) {
+function MiniBar({ label, value, max, color, prefix = "₹", suffix = "" }) {
   return (
     <div style={{ marginBottom: "12px" }}>
       <div
@@ -147,7 +147,7 @@ function MiniBar({ label, value, max, color }) {
             fontFamily: "'Outfit',sans-serif",
           }}
         >
-          ₹{value?.toLocaleString()}
+          {prefix}{value?.toLocaleString()}{suffix}
         </span>
       </div>
       <div
@@ -243,12 +243,25 @@ export default function Dashboard() {
 
   const maxRev = Math.max(...chartData.map((d) => d.revenue), 1);
 
-  // Top selling products (by price desc as proxy)
+  // Top selling products (real data from orders)
+  const productSales = {};
+  orders.forEach((o) => {
+    if (o.orderStatus !== "Cancelled" && o.orderItems) {
+      o.orderItems.forEach((item) => {
+        const pId = item.product?._id || item.product;
+        if (pId) {
+          productSales[pId] = (productSales[pId] || 0) + (item.qty || 1);
+        }
+      });
+    }
+  });
+
   const topProducts = [...products]
-    .sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price))
+    .map(p => ({ ...p, totalSold: productSales[p._id] || 0 }))
+    .sort((a, b) => b.totalSold - a.totalSold)
     .slice(0, 6);
-  const maxTopPrice =
-    topProducts[0]?.discountPrice || topProducts[0]?.price || 1;
+
+  const maxTopSold = topProducts[0]?.totalSold || 1;
 
   if (loading)
     return (
@@ -482,7 +495,7 @@ export default function Dashboard() {
               fontSize: "16px",
             }}
           >
-            Top Products by Value
+            Top Products by Volume
           </h3>
           {topProducts.length === 0 ? (
             <p style={{ color: "#94a3b8", fontSize: "13px" }}>
@@ -493,9 +506,11 @@ export default function Dashboard() {
               <MiniBar
                 key={p._id}
                 label={p.name}
-                value={p.discountPrice || p.price}
-                max={maxTopPrice}
+                value={p.totalSold}
+                max={maxTopSold}
                 color={COLORS[i % COLORS.length]}
+                prefix=""
+                suffix=" sold"
               />
             ))
           )}

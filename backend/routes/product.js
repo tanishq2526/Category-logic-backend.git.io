@@ -194,16 +194,18 @@ router.get("/all", async (req, res) => {
     // PAGINATION
     // ------------------------------
 
-    const parsedLimit = parseInt(limit) || 0;
+    const parsedLimit = 10;
     const parsedPage = parseInt(page) || 1;
 
-    const skip = parsedLimit > 0 ? (parsedPage - 1) * parsedLimit : 0;
+    const skip = (parsedPage - 1) * parsedLimit;
 
     // ------------------------------
     // TOTAL COUNT
     // ------------------------------
 
     const total = await Product.countDocuments(query);
+    const active = await Product.countDocuments({ ...query, status: "Active" });
+    const inactive = await Product.countDocuments({ ...query, status: "Inactive" });
 
     // ------------------------------
     // FETCH PRODUCTS
@@ -228,6 +230,8 @@ router.get("/all", async (req, res) => {
       success: true,
       message: "Products fetched successfully",
       total,
+      active,
+      inactive,
       data: products,
     });
   } catch (error) {

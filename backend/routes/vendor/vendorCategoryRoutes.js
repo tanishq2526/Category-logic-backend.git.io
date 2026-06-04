@@ -13,14 +13,14 @@
  *
  * ─── Middleware chain on every request ───────────────────────────────────────
  *   protect            → verifies JWT token, adds req.user
- *   authorizeRoles     → confirms user role is "vendor"
+ *   requireAuth     → confirms user role is "vendor"
  *   ...vendorGuard     → attachVendorContext + validateOwnership
  *   controller         → runs the actual logic
  */
 
 import express from "express";
 
-import { protect, authorizeRoles } from "../../middleware/authMiddleware.js";
+import { protect, requireAuth } from "../../middleware/authMiddleware.js";
 import { vendorGuard } from "../../middleware/vendor/vendorMiddleware.js";
 import {
   getCategories,
@@ -35,7 +35,7 @@ import {
 const router = express.Router({ mergeParams: true });
 
 // Compose the full auth + vendor guard into one reusable array.
-const auth = [protect, authorizeRoles("vendor"), ...vendorGuard];
+const auth = [protect, requireAuth("vendor"), ...vendorGuard];
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 

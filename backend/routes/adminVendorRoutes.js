@@ -13,7 +13,7 @@
  *
  * ─── Middleware chain on every request ───────────────────────────────────────
  *   protect        → verifies JWT token, adds req.user
- *   authorizeRoles → confirms user role is "admin"
+ *   requireAuth → confirms user role is "admin"
  *   controller     → runs the actual logic
  *
  * NOTE: There is NO vendorGuard here.
@@ -23,7 +23,7 @@
 
 import express from "express";
 
-import { protect, authorizeRoles } from "../middleware/authMiddleware.js";
+import { protect, requireAuth } from "../middleware/authMiddleware.js";
 import {
   getAllVendors,
   getVendorById,
@@ -36,7 +36,7 @@ const router = express.Router();
 
 // ── Auth guard (admin only) ───────────────────────────────────────────────────
 // Composed into one array for reuse on every route below.
-const adminAuth = [protect, authorizeRoles("admin")];
+const adminAuth = [protect, requireAuth("admin")];
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
