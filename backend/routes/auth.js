@@ -65,7 +65,7 @@ const sendAuthResponse = (res, statusCode, message, user, vendor = null) => {
     success: true,
     message,
     token,
-    user: buildUserPayload(user, vendor),
+    user: buildUserPayload(user, vendor), // include vendorSlug if applicable
   });
 };
 
@@ -158,6 +158,8 @@ router.post("/register-admin", async (req, res) => {
           message: "Name, email, password, and admin secret are required",
         });
     }
+
+    console.log("Admin registration attempt with secret:", secretKey); // Debug log
 
     // Fail fast — check secret before any DB work
     if (secretKey !== process.env.ADMIN_SECRET) {
