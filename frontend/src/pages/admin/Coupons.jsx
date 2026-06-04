@@ -249,6 +249,8 @@ export default function Coupon() {
 
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [showModal, setShowModal] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState(null);
@@ -276,7 +278,7 @@ export default function Coupon() {
 
   useEffect(() => {
     fetchCoupons();
-  }, []);
+  }, [page]);
 
   useEffect(() => {
     if (activeTab === "usage") {
@@ -320,7 +322,8 @@ export default function Coupon() {
   async function fetchCoupons() {
     try {
       setLoading(true);
-      const res = await fetch(API.coupons, {
+      const query = new URLSearchParams({ page });
+      const res = await fetch(`${API.coupons}?${query}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -328,6 +331,7 @@ export default function Coupon() {
       });
       const data = await res.json();
       setCoupons(data?.data || []);
+      setTotalPages(data?.pagination?.totalPages || 1);
     } catch (error) {
       console.error("Failed to fetch coupons", error);
     } finally {
@@ -569,6 +573,7 @@ export default function Coupon() {
 
       {/* ── COUPONS TAB ── */}
       {activeTab === "coupons" && (
+        <>
         <div style={styles.tableWrapper}>
           <table style={styles.table}>
             <thead>
@@ -716,6 +721,57 @@ export default function Coupon() {
             </tbody>
           </table>
         </div>
+        
+      
+        {totalPages > 1 && (
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              marginTop: "16px",
+              justifyContent: "center",
+            }}
+          >
+            <button
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "8px",
+                border: "1px solid #e2e8f0",
+                background: "white",
+                cursor: "pointer",
+                opacity: page <= 1 ? 0.4 : 1,
+              }}
+            >
+              ← Prev
+            </button>
+            <span
+              style={{
+                padding: "8px 16px",
+                fontSize: "14px",
+                color: "#475569",
+              }}
+            >
+              Page {page} / {totalPages}
+            </span>
+            <button
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "8px",
+                border: "1px solid #e2e8f0",
+                background: "white",
+                cursor: "pointer",
+                opacity: page >= totalPages ? 0.4 : 1,
+              }}
+            >
+              Next →
+            </button>
+          </div>
+        )}
+        </>
       )}
 
       {/* ── USAGE HISTORY TAB ── */}

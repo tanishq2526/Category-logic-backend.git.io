@@ -119,10 +119,14 @@ export default function Category() {
   const [editData, setEditData] = useState(null);
   const [form, setForm] = useState({ name: "", slug: "", status: "Active" });
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
 
   useEffect(() => {
-    loadCategories();
-  }, []);
+    loadCategories(page);
+  }, [page]);
+  
   useEffect(() => {
     let list = [...categories];
     if (search)
@@ -136,10 +140,16 @@ export default function Category() {
      setFiltered(list);
   }, [categories, search, filterStatus]);
 
-  async function loadCategories() {
-    const res = await fetch("/api/category/all", { headers: getHeaders() });
+  async function loadCategories(pageNum = 1) {
+    const res = await fetch(`/api/category/all?page=${pageNum}`, { headers: getHeaders() });
     const data = await res.json();
     setCategories(data.data || []);
+    setTotalPages(data.totalPages || 1);
+    setStats({
+      total: data.total || 0,
+      active: data.active || 0,
+      inactive: data.inactive || 0,
+    });
     setSelected([]);
   }
 
@@ -211,13 +221,7 @@ export default function Category() {
       selected.length === filtered.length ? [] : filtered.map((c) => c._id),
     );
 
-  const stats = {
-    total: categories.length,
-    active: categories.filter((c) => c.status?.toLowerCase() === "active")
-      .length,
-    inactive: categories.filter((c) => c.status?.toLowerCase() === "inactive")
-      .length,
-  };
+
 
   return (
     <div style={S}>
@@ -540,6 +544,45 @@ export default function Category() {
               )}
             </tbody>
           </table>
+        </div>
+        
+        {/* Pagination Controls */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", borderTop: "1px solid #e2e8f0" }}>
+          <span style={{ fontSize: "14px", color: "#64748b" }}>
+            Page {page} of {totalPages}
+          </span>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: "1px solid #e2e8f0",
+                background: page === 1 ? "#f8fafc" : "white",
+                color: page === 1 ? "#94a3b8" : "#0f172a",
+                cursor: page === 1 ? "not-allowed" : "pointer",
+                fontSize: "14px",
+              }}
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: "1px solid #e2e8f0",
+                background: page === totalPages ? "#f8fafc" : "white",
+                color: page === totalPages ? "#94a3b8" : "#0f172a",
+                cursor: page === totalPages ? "not-allowed" : "pointer",
+                fontSize: "14px",
+              }}
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 

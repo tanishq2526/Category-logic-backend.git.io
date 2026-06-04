@@ -3,6 +3,7 @@
  * Loads categories for the parent dropdown, fetches /api/subCategory/all, and handles create/update/delete flows.
  */
 import { useState, useEffect, useMemo, useCallback } from "react";
+import SearchableDropdown from "../../components/SearchableDropdown";
 
 const EditIcon = () => (
   <svg
@@ -117,6 +118,9 @@ export default function SubCategory() {
     slug: "",
     status: "Active",
   });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
 
   const getEffectiveSubStatus = (sub) =>
     sub.parentCategory?.status === "Inactive"
@@ -134,11 +138,21 @@ export default function SubCategory() {
     setCategories(data.data || []);
   }, []);
 
-  const loadSubCategories = useCallback(async () => {
-    const res = await fetch("/api/subCategory/all", { headers: getHeaders() });
+  const loadSubCategories = useCallback(async (pageNum = 1) => {
+    const res = await fetch(`/api/subCategory/all?page=${pageNum}`, { headers: getHeaders() });
     const data = await res.json();
     setSubCategories(data.data || []);
+    setTotalPages(data.totalPages || 1);
+    setStats({
+      total: data.total || 0,
+      active: data.active || 0,
+      inactive: data.inactive || 0,
+    });
   }, []);
+
+  useEffect(() => {
+    loadSubCategories(page);
+  }, [page, loadSubCategories]);
 
   useEffect(() => {
     const init = async () => {
@@ -153,11 +167,7 @@ export default function SubCategory() {
     ? "Selected parent category is inactive. This subcategory cannot be active."
     : "";
 
-  const stats = useMemo(() => ({
-    total: subCategories.length,
-    active: subCategories.filter((sub) => getEffectiveSubStatus(sub) === "Active").length,
-    inactive: subCategories.filter((sub) => getEffectiveSubStatus(sub) === "Inactive").length,
-  }), [subCategories]);
+
 
   const filteredSubCategories = useMemo(() => {
     return subCategories.filter((sub) => {
@@ -328,18 +338,14 @@ export default function SubCategory() {
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
         </select>
-        <select
-          value={filterParent}
-          onChange={(event) => setFilterParent(event.target.value)}
-          style={{ padding: "12px 14px", borderRadius: "14px", border: "1px solid #cbd5e1", fontSize: "14px", minWidth: "160px" }}
-        >
-          <option value="all">All Parent Categories</option>
-          {categories.map((category) => (
-            <option key={category._id} value={category._id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
+        <div style={{ minWidth: "220px" }}>
+          <SearchableDropdown
+            value={filterParent === "all" ? "" : filterParent}
+            onChange={(val) => setFilterParent(val || "all")}
+            fetchUrl="/api/category/search"
+            placeholder="All Parent Categories"
+          />
+        </div>
       </div>
 
       <div style={{ overflowX: "auto", background: "#fff", borderRadius: "20px", border: "1px solid #e2e8f0", padding: "1px" }}>
@@ -405,6 +411,45 @@ export default function SubCategory() {
             )}
           </tbody>
         </table>
+        
+        {/* Pagination Controls */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", borderTop: "1px solid #e2e8f0" }}>
+          <span style={{ fontSize: "14px", color: "#64748b" }}>
+            Page {page} of {totalPages}
+          </span>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: "1px solid #e2e8f0",
+                background: page === 1 ? "#f8fafc" : "white",
+                color: page === 1 ? "#94a3b8" : "#0f172a",
+                cursor: page === 1 ? "not-allowed" : "pointer",
+                fontSize: "14px",
+              }}
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: "1px solid #e2e8f0",
+                background: page === totalPages ? "#f8fafc" : "white",
+                color: page === totalPages ? "#94a3b8" : "#0f172a",
+                cursor: page === totalPages ? "not-allowed" : "pointer",
+                fontSize: "14px",
+              }}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
 
       {showModal && (
@@ -413,18 +458,14 @@ export default function SubCategory() {
             <div style={{ display: "grid", gap: "14px" }}>
               <label style={labelStyle}>
                 Parent Category
-                <select
-                  value={form.parentCategory}
-                  onChange={(event) => handleChange("parentCategory", event.target.value)}
-                  style={inputStyle}
-                >
-                  <option value="">Select parent category</option>
-                  {categories.map((category) => (
-                    <option key={category._id} value={category._id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+                <div style={{ marginTop: "8px" }}>
+                  <SearchableDropdown
+                    value={form.parentCategory}
+                    onChange={(val) => handleChange("parentCategory", val)}
+                    fetchUrl="/api/category/search"
+                    placeholder="Select parent category"
+                  />
+                </div>
               </label>
 
               <label style={labelStyle}>

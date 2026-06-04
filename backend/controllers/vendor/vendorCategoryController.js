@@ -13,8 +13,8 @@
  */
 
 import slugify from "slugify";
-import VendorCategory from "../../models/vendor/VendorCategory.js";
-import VendorProduct from "../../models/vendor/VendorProduct.js";
+import VendorCategory from "../../models/vendor/vendorCategory.js";
+import VendorProduct from "../../models/vendor/vendorProduct.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // @route   GET /api/vendor/:vendorSlug/categories

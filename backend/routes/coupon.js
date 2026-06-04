@@ -365,7 +365,7 @@ router.post("/confirm-usage", async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 router.get("/usage-history", async (req, res) => {
   try {
-    const { couponId, userId, status, page = 1, limit = 20 } = req.query;
+    const { couponId, userId, status, page = 1, limit = 10 } = req.query;
 
     const query = {};
 

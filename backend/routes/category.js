@@ -10,6 +10,7 @@
 import express from "express";
 import Category from "../models/Category.js";
 import SubCategory from "../models/SubCategory.js";
+import Product from "../models/Product.js";
 
 const router = express.Router();
 
@@ -39,21 +40,46 @@ router.post("/create", async (req, res) => {
   }
 });
 
-// Get all categories
+// Get all categories (paginated)
 router.get("/all", async (req, res) => {
   try {
-    const categories = await Category.find();
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const total = await Category.countDocuments();
+    const active = await Category.countDocuments({ status: "Active" });
+    const inactive = await Category.countDocuments({ status: "Inactive" });
+    const categories = await Category.find().skip(skip).limit(limit);
 
     res.status(200).json({
       success: true,
       message: "Data loaded successfully",
-      data : categories,
+      data: categories,
+      page,
+      totalPages: Math.ceil(total / limit),
+      total,
+      active,
+      inactive,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: "Internal server error",
     });
+  }
+});
+
+// Search categories for dropdowns (limit defaults to 5)
+router.get("/search", async (req, res) => {
+  try {
+    const { q = "", limit = 5 } = req.query;
+    const query = q ? { name: { $regex: q, $options: "i" }, status: "Active" } : { status: "Active" };
+    
+    const categories = await Category.find(query).limit(parseInt(limit));
+    res.status(200).json({ success: true, data: categories });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
@@ -75,11 +101,26 @@ router.put("/update/:id", async (req, res) => {
       new: true,
     });
 
-    if (makeUpdate?.status === "Inactive") {
-      await SubCategory.updateMany(
-        { parentCategory: ID },
-        { status: "Inactive" },
-      );
+    if (makeUpdate) {
+      const targetStatus = makeUpdate.status; // "Active" or "Inactive"
+      
+      // Find all subcategories linked to this category
+      const subCategories = await SubCategory.find({ parentCategory: ID });
+      const subCategoryIds = subCategories.map(sub => sub._id);
+
+      // Update their status
+      if (subCategoryIds.length > 0) {
+        await SubCategory.updateMany(
+          { _id: { $in: subCategoryIds } },
+          { status: targetStatus }
+        );
+
+        // Update all products under these subcategories
+        await Product.updateMany(
+          { subCategory: { $in: subCategoryIds } },
+          { status: targetStatus }
+        );
+      }
     }
 
     res.status(200).json({

@@ -10,7 +10,7 @@
  * ─── Middleware chain ─────────────────────────────────────────────────────────
  *
  *   protect             → verify JWT, attach req.user
- *   authorizeRoles      → confirm role === "vendor"
+ *   requireAuth      → confirm role === "vendor"
  *   vendorGuard         → [attachVendorContext + validateOwnership] combined:
  *                           1. finds Vendor doc by req.user._id → req.vendor, req.vendorId
  *                           2. confirms :vendorSlug in URL matches req.vendor.slug
@@ -45,7 +45,7 @@
 
 import express from "express";
 
-import { protect, authorizeRoles } from "../../middleware/authMiddleware.js";
+import { protect, requireAuth } from "../../middleware/authMiddleware.js";
 import { vendorGuard } from "../../middleware/Vendor/vendorMiddleware.js";
 import upload from "../../middleware/upload.js";
 import { uploadVendorImage } from "../../controllers/vendor/vendorUploadController.js";
@@ -58,7 +58,7 @@ const router = express.Router({ mergeParams: true });
 // Spreading it into the array keeps the chain flat and readable.
 const vendorAuth = [
   protect, // 1. valid JWT → req.user
-  authorizeRoles("vendor"), // 2. role must be "vendor"
+  requireAuth("vendor"), // 2. role must be "vendor"
   ...vendorGuard, // 3. fetch vendor doc + 4. verify slug ownership
 ];
 
