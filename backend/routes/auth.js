@@ -142,59 +142,59 @@ router.post("/register", registerLimiter, async (req, res) => {
 // @route   POST /api/auth/register-admin
 // @desc    Register a new admin (requires ADMIN_SECRET)
 // @access  Private (secret key protected)
-router.post("/register-admin", async (req, res) => {
-  try {
-    const { name, email, password, phone, secretKey } = req.body;
+// router.post("/register-admin", async (req, res) => {
+//   try {
+//     const { name, email, password, phone, secretKey } = req.body;
 
-    if (!name?.trim() || !email?.trim() || !password || !secretKey) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Name, email, password, and admin secret are required",
-        });
-    }
+//     if (!name?.trim() || !email?.trim() || !password || !secretKey) {
+//       return res
+//         .status(400)
+//         .json({
+//           success: false,
+//           message: "Name, email, password, and admin secret are required",
+//         });
+//     }
 
-    // Fail fast — check secret before any DB work
-    if (secretKey !== process.env.ADMIN_SECRET) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Invalid secret key" });
-    }
+//     // Fail fast — check secret before any DB work
+//     if (secretKey !== process.env.ADMIN_SECRET) {
+//       return res
+//         .status(403)
+//         .json({ success: false, message: "Invalid secret key" });
+//     }
 
-    if (password.length < 6) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Password must be at least 6 characters",
-        });
-    }
+//     if (password.length < 6) {
+//       return res
+//         .status(400)
+//         .json({
+//           success: false,
+//           message: "Password must be at least 6 characters",
+//         });
+//     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+//     const normalizedEmail = email.trim().toLowerCase();
 
-    if (await User.findOne({ email: normalizedEmail })) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email is already registered" });
-    }
+//     if (await User.findOne({ email: normalizedEmail })) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "Email is already registered" });
+//     }
 
-    const newUser = await User.create({
-      name: name.trim(),
-      email: normalizedEmail,
-      password: await bcrypt.hash(password, 10),
-      phone: phone?.trim() || "",
-      role: "admin",
-    });
+//     const newUser = await User.create({
+//       name: name.trim(),
+//       email: normalizedEmail,
+//       password: await bcrypt.hash(password, 10),
+//       phone: phone?.trim() || "",
+//       role: "admin",
+//     });
 
-    return sendAuthResponse(res, 201, "Admin registered successfully", newUser);
-  } catch (error) {
-    console.error("Register-admin error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
-  }
-});
+//     return sendAuthResponse(res, 201, "Admin registered successfully", newUser);
+//   } catch (error) {
+//     console.error("Register-admin error:", error);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: "Internal server error" });
+//   }
+// });
 
 // @route   POST /api/auth/register-vendor
 // @desc    Register a new vendor (creates User + Vendor profile atomically)
