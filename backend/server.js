@@ -102,6 +102,7 @@ import categoryRoutes    from "./routes/category.js";
 import subCategoryRoutes from "./routes/subCategory.js";
 import productRoutes     from "./routes/product.js";
 import cartRoutes        from "./routes/cart.js";
+import wishlistRoutes    from "./routes/wishlist.js";
 import couponRoutes      from "./routes/coupon.js";
 import variantRoutes     from "./routes/variant.js";
 import profileRoutes     from "./routes/profile.js";
@@ -214,11 +215,12 @@ app.use("/api/auth", authRoutes);
 //     Every single endpoint inside these files requires a valid JWT.
 //     You do NOT need to add protect again inside the route files.
 // ─────────────────────────────────────────────────────────────────────────────
-app.use("/api/category",    protect, categoryRoutes);
-app.use("/api/subCategory", protect, subCategoryRoutes);
-app.use("/api/product",     protect, productRoutes);
-app.use("/api/variant",     protect, variantRoutes);
+app.use("/api/category",    categoryRoutes);
+app.use("/api/subCategory", subCategoryRoutes);
+app.use("/api/product",     productRoutes);
+app.use("/api/variant",     variantRoutes);
 app.use("/api/cart",        protect, cartRoutes);
+app.use("/api/wishlist",    protect, wishlistRoutes);
 app.use("/api/coupon",      protect, couponRoutes);
 app.use("/api/giftCard",    protect, giftCardRoutes);
 app.use("/api",             protect, profileRoutes); // handles /api/profile, /api/me, etc.

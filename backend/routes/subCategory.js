@@ -12,11 +12,12 @@ import express from "express";
 import SubCategory from "../models/SubCategory.js";
 import Category from "../models/Category.js";
 import Product from "../models/Product.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // Create SubCategory
-router.post("/create", async(req,res) => {
+router.post("/create", protect, async(req,res) => {
     try{
         const { parentCategory, name, slug, status } = req.body;
         
@@ -57,7 +58,7 @@ router.post("/create", async(req,res) => {
 })
 
 // Display SubCategory (paginated)
-router.get("/all", async(req,res) => {
+router.get("/all", protect, async(req,res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = 10;
@@ -87,7 +88,7 @@ router.get("/all", async(req,res) => {
 })
 
 // Search subcategories for dropdowns
-router.get("/search", async (req, res) => {
+router.get("/search", protect, async (req, res) => {
   try {
     const { q = "", limit = 5 } = req.query;
     const query = q ? { name: { $regex: q, $options: "i" }, status: "Active" } : { status: "Active" };
@@ -111,7 +112,7 @@ router.get("/public/all", async (req, res) => {
 });
 
 // Update SubCategory
-router.put("/update/:id", async(req,res) => {
+router.put("/update/:id", protect, async(req,res) => {
     try{
             const ID = req.params.id
             const updatedField = req.body;
@@ -166,7 +167,7 @@ router.put("/update/:id", async(req,res) => {
 })
 
 // Delete SubCategory
-router.delete("/delete/:id", async(req,res) => {
+router.delete("/delete/:id", protect, async(req,res) => {
 try {
       const ID = req.params.id;
       const deletesubCategory = await SubCategory.findByIdAndDelete(ID);

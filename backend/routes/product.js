@@ -14,6 +14,7 @@ import express from "express";
 import SubCategory from "../models/SubCategory.js";
 import Product from "../models/Product.js";
 import upload from "../middleware/upload.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -45,7 +46,7 @@ const getImagePath = (files, field) => {
 // CREATE PRODUCT
 // ======================================================
 
-router.post("/create", cpUpload, async (req, res) => {
+router.post("/create", protect, cpUpload, async (req, res) => {
   try {
     const {
       subCategory,
@@ -151,7 +152,7 @@ router.post("/create", cpUpload, async (req, res) => {
 // GET ALL PRODUCTS (ADMIN)
 // ======================================================
 
-router.get("/all", async (req, res) => {
+router.get("/all", protect, async (req, res) => {
   try {
     const { search, limit, page, status, subCategory } = req.query;
 
@@ -313,7 +314,7 @@ router.get("/public/:id", async (req, res) => {
 // UPDATE PRODUCT
 // ======================================================
 
-router.put("/update/:id", cpUpload, async (req, res) => {
+router.put("/update/:id", protect, cpUpload, async (req, res) => {
   try {
     const productId = req.params.id;
 
@@ -385,7 +386,7 @@ router.put("/update/:id", cpUpload, async (req, res) => {
 // DELETE PRODUCT
 // ======================================================
 
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id", protect, async (req, res) => {
   try {
     const productId = req.params.id;
 
