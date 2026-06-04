@@ -2,7 +2,7 @@
 
 Generated: 2026-06-04
 
-**TOTAL 94 API's**
+**TOTAL 98 API's**
 
 This document lists all Express routes in the project with their HTTP method, full path (including router mounts), and source file.
 
@@ -53,6 +53,12 @@ This document lists all Express routes in the project with their HTTP method, fu
 - DELETE /api/cart/clear — Clear cart — [backend/routes/cart.js](backend/routes/cart.js)
 - POST /api/cart/apply-coupon — Apply coupon to cart — [backend/routes/cart.js](backend/routes/cart.js)
 - DELETE /api/cart/remove-coupon — Remove coupon from cart — [backend/routes/cart.js](backend/routes/cart.js)
+
+**Wishlist (/api/wishlist)**  
+- GET  /api/wishlist/ — Get wishlist for logged-in user — [backend/routes/wishlist.js](backend/routes/wishlist.js)
+- POST /api/wishlist/add — Add product to wishlist — [backend/routes/wishlist.js](backend/routes/wishlist.js)
+- DELETE /api/wishlist/remove/:productId — Remove product from wishlist — [backend/routes/wishlist.js](backend/routes/wishlist.js)
+- DELETE /api/wishlist/clear — Clear wishlist — [backend/routes/wishlist.js](backend/routes/wishlist.js)
 
 **Coupons (public/admin) (/api/coupon)**  
 - GET  /api/coupon/products/search — Search products for product-type coupons — [backend/routes/coupon.js](backend/routes/coupon.js)
