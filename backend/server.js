@@ -77,6 +77,8 @@ import "dotenv/config"; // auto-reads .env from the project root
 import express      from "express";
 import cors         from "cors";
 import cookieParser from "cookie-parser";
+import http         from "http";
+import { initSocket } from "./socket.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 3.  LOCAL UTILITIES
@@ -133,8 +135,9 @@ import vendorUploadRoutes from "./routes/vendor/vendorUploadRoutes.js";
 // ─────────────────────────────────────────────────────────────────────────────
 // 6.  APP INITIALISATION
 // ─────────────────────────────────────────────────────────────────────────────
-const app  = express();
-const PORT = process.env.PORT || 3000;
+const app    = express();
+const server = http.createServer(app);
+const PORT   = process.env.PORT || 3000;
 
 // Build the list of allowed frontend origins from .env (supports comma-separated values)
 // Example .env:  CLIENT_URL=http://localhost:5173,https://mystore.com
@@ -142,6 +145,9 @@ const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
+
+// Initialize Socket.IO
+initSocket(server, allowedOrigins);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 7.  DATABASE CONNECTION
@@ -368,7 +374,7 @@ app.use((err, req, res, next) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // 17. START THE SERVER
 // ─────────────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════╗
 ║   🚀  Server running successfully        ║

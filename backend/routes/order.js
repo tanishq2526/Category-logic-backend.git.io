@@ -17,6 +17,7 @@ import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import { protect, requireAuth } from '../middleware/authMiddleware.js';
+import { getIO } from "../socket.js";
 
 const router = express.Router();
 
@@ -162,6 +163,16 @@ router.post("/", protect, async (req, res) => {
       }
 
       await session.commitTransaction();
+      
+      await createdOrder.populate("user", "id name email phone");
+
+      try {
+        const io = getIO();
+        io.emit("newOrder", formatOrder(createdOrder));
+      } catch (err) {
+        console.error("Socket error on new order:", err);
+      }
+
       return res.status(201).json(formatOrder(createdOrder));
     } catch (txError) {
       await session.abortTransaction();
@@ -318,6 +329,15 @@ router.put("/:id/pay", protect, async (req, res) => {
     };
 
     const updatedOrder = await order.save();
+    await updatedOrder.populate("user", "id name email phone");
+
+    try {
+      const io = getIO();
+      io.emit("orderUpdated", formatOrder(updatedOrder));
+    } catch (err) {
+      console.error("Socket error on order pay:", err);
+    }
+
     res.json(formatOrder(updatedOrder));
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -370,6 +390,15 @@ router.put("/:id/cancel", protect, async (req, res) => {
       await order.save({ session });
       await Product.bulkWrite(restoreOps, { session });
       await session.commitTransaction();
+
+      await order.populate("user", "id name email phone");
+
+      try {
+        const io = getIO();
+        io.emit("orderUpdated", formatOrder(order));
+      } catch (err) {
+        console.error("Socket error on order cancel:", err);
+      }
 
       res.json(formatOrder(order));
     } catch (txError) {
@@ -453,6 +482,16 @@ router.put("/:id/status", protect, requireAuth('admin'), async (req, res) => {
 
       const updatedOrder = await order.save({ session });
       await session.commitTransaction();
+      
+      await updatedOrder.populate("user", "id name email phone");
+
+      try {
+        const io = getIO();
+        io.emit("orderUpdated", formatOrder(updatedOrder));
+      } catch (err) {
+        console.error("Socket error on order status update:", err);
+      }
+
       res.json(formatOrder(updatedOrder));
     } catch (txError) {
       await session.abortTransaction();
