@@ -77,6 +77,8 @@ import "dotenv/config"; // auto-reads .env from the project root
 import express      from "express";
 import cors         from "cors";
 import cookieParser from "cookie-parser";
+import http         from "http";
+import { initSocket } from "./socket.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 3.  LOCAL UTILITIES
@@ -111,6 +113,7 @@ import giftCardRoutes    from "./routes/giftCard.js";
 // Order & user routes — protect is declared INSIDE these files, not here
 import orderRoutes       from "./routes/order.js";
 import userRoutes        from "./routes/user.js";
+import paymentRoutes     from "./routes/payment.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 5.  ROUTE IMPORTS  —  NEW vendor & admin-vendor routes
@@ -133,8 +136,9 @@ import vendorUploadRoutes from "./routes/vendor/vendorUploadRoutes.js";
 // ─────────────────────────────────────────────────────────────────────────────
 // 6.  APP INITIALISATION
 // ─────────────────────────────────────────────────────────────────────────────
-const app  = express();
-const PORT = process.env.PORT || 3000;
+const app    = express();
+const server = http.createServer(app);
+const PORT   = process.env.PORT || 3000;
 
 // Build the list of allowed frontend origins from .env (supports comma-separated values)
 // Example .env:  CLIENT_URL=http://localhost:5173,https://mystore.com
@@ -142,6 +146,9 @@ const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
+
+// Initialize Socket.IO
+initSocket(server, allowedOrigins);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 7.  DATABASE CONNECTION
@@ -154,6 +161,16 @@ connectDB();
 //     Middleware runs in the ORDER it is registered.
 //     Every request passes through all of these before hitting a route.
 // ─────────────────────────────────────────────────────────────────────────────
+
+// TEMPORARY — remove after testing
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.get("/test-payment", (req, res) => {
+  res.sendFile(path.join(__dirname, "test-razorpay.html"));
+});
 
 // ── 8a. CORS ─────────────────────────────────────────────────────────────────
 //  Tells the browser which origins may call this API.
@@ -234,6 +251,7 @@ app.use("/api",             protect, profileRoutes); // handles /api/profile, /a
 // ─────────────────────────────────────────────────────────────────────────────
 app.use("/api/orders", orderRoutes);
 app.use("/api/users",  userRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 13. ADMIN ROUTES  —  protect + authorizeRoles('admin') live inside each file
@@ -368,7 +386,7 @@ app.use((err, req, res, next) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // 17. START THE SERVER
 // ─────────────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════╗
 ║   🚀  Server running successfully        ║
@@ -554,3 +572,4 @@ export default app; // exported for testing frameworks (Jest / Supertest)
 // ========================================
 // `);
 // });
+// Trigger nodemon restart

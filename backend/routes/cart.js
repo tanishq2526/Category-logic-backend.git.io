@@ -6,6 +6,7 @@
 import express from "express";
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
+import VendorProduct from "../models/vendor/vendorProduct.js";
 import Coupon from "../models/Coupon.js";
 import calculateCartTotals from "../utils/calculateCartTotal.js";
 
@@ -126,7 +127,13 @@ router.post("/add", async (req, res) => {
     //
     // PRODUCT VALIDATION
     //
-    const product = await Product.findById(productId);
+    let product = await Product.findById(productId);
+    let productModel = "Product";
+
+    if (!product) {
+      product = await VendorProduct.findById(productId);
+      productModel = "VendorProduct";
+    }
 
     if (!product) {
       return res.status(404).json({
@@ -135,7 +142,8 @@ router.post("/add", async (req, res) => {
       });
     }
 
-    if (product.status !== "Active") {
+    const isActive = productModel === "VendorProduct" ? product.isActive : product.status === "Active";
+    if (!isActive) {
       return res.status(400).json({
         success: false,
         message: "Product unavailable",
@@ -163,14 +171,13 @@ router.post("/add", async (req, res) => {
       });
     }
 
-    //
-    // CHECK EXISTING ITEM
-    //
     const existingItemIndex = cart.items.findIndex(
       (item) => item.product.toString() === productId,
     );
 
-    const finalPrice = product.discountPrice || product.price;
+    const salePrice = productModel === "VendorProduct" ? (product.salePrice || 0) : (product.discountPrice || 0);
+    const finalPrice = salePrice > 0 ? salePrice : product.price;
+    const image = product.image || (product.images && product.images[0]) || "";
 
     //
     // UPDATE EXISTING ITEM
@@ -189,16 +196,17 @@ router.post("/add", async (req, res) => {
 
       cart.items[existingItemIndex] = {
         product: product._id,
+        productModel,
 
         name: product.name,
         slug: product.slug,
-        image: product.image || "",
+        image,
         sku: product.sku,
 
         quantity: updatedQuantity,
 
         price: product.price,
-        salePrice: product.discountPrice || 0,
+        salePrice,
         finalPrice,
 
         stock: product.stock,
@@ -209,20 +217,19 @@ router.post("/add", async (req, res) => {
       };
     } else {
       //
-      // ADD NEW ITEM
-      //
       cart.items.push({
         product: product._id,
+        productModel,
 
         name: product.name,
         slug: product.slug,
-        image: product.image || "",
+        image,
         sku: product.sku,
 
         quantity,
 
         price: product.price,
-        salePrice: product.discountPrice || 0,
+        salePrice,
         finalPrice,
 
         stock: product.stock,
@@ -302,7 +309,13 @@ router.put("/update/:productId", async (req, res) => {
     if (quantity === 0) {
       cart.items.splice(itemIndex, 1);
     } else {
-      const product = await Product.findById(req.params.productId);
+      let product = await Product.findById(req.params.productId);
+      let productModel = "Product";
+      
+      if (!product) {
+        product = await VendorProduct.findById(req.params.productId);
+        productModel = "VendorProduct";
+      }
 
       if (!product) {
         return res.status(404).json({
@@ -318,20 +331,23 @@ router.put("/update/:productId", async (req, res) => {
         });
       }
 
-      const finalPrice = product.discountPrice || product.price;
+      const salePrice = productModel === "VendorProduct" ? (product.salePrice || 0) : (product.discountPrice || 0);
+      const finalPrice = salePrice > 0 ? salePrice : product.price;
+      const image = product.image || (product.images && product.images[0]) || "";
 
       cart.items[itemIndex] = {
         product: product._id,
+        productModel,
 
         name: product.name,
         slug: product.slug,
-        image: product.image || "",
+        image,
         sku: product.sku,
 
         quantity,
 
         price: product.price,
-        salePrice: product.discountPrice || 0,
+        salePrice,
         finalPrice,
 
         stock: product.stock,
