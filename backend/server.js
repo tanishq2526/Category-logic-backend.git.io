@@ -113,6 +113,7 @@ import giftCardRoutes    from "./routes/giftCard.js";
 // Order & user routes — protect is declared INSIDE these files, not here
 import orderRoutes       from "./routes/order.js";
 import userRoutes        from "./routes/user.js";
+import paymentRoutes     from "./routes/payment.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 5.  ROUTE IMPORTS  —  NEW vendor & admin-vendor routes
@@ -160,6 +161,16 @@ connectDB();
 //     Middleware runs in the ORDER it is registered.
 //     Every request passes through all of these before hitting a route.
 // ─────────────────────────────────────────────────────────────────────────────
+
+// TEMPORARY — remove after testing
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.get("/test-payment", (req, res) => {
+  res.sendFile(path.join(__dirname, "test-razorpay.html"));
+});
 
 // ── 8a. CORS ─────────────────────────────────────────────────────────────────
 //  Tells the browser which origins may call this API.
@@ -240,6 +251,7 @@ app.use("/api",             protect, profileRoutes); // handles /api/profile, /a
 // ─────────────────────────────────────────────────────────────────────────────
 app.use("/api/orders", orderRoutes);
 app.use("/api/users",  userRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 13. ADMIN ROUTES  —  protect + authorizeRoles('admin') live inside each file
@@ -560,3 +572,4 @@ export default app; // exported for testing frameworks (Jest / Supertest)
 // ========================================
 // `);
 // });
+// Trigger nodemon restart

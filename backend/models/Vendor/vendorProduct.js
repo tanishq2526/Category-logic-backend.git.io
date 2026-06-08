@@ -33,4 +33,4 @@ const VendorProductSchema = new mongoose.Schema(
 
 VendorProductSchema.index({ vendor: 1, slug: 1 }, { unique: true });
 
-export default mongoose.model("VendorProduct", VendorProductSchema);
+export default mongoose.models.VendorProduct || mongoose.model("VendorProduct", VendorProductSchema);

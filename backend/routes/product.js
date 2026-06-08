@@ -13,6 +13,7 @@
 import express from "express";
 import SubCategory from "../models/SubCategory.js";
 import Product from "../models/Product.js";
+import VendorProduct from "../models/vendor/vendorProduct.js";
 import upload from "../middleware/upload.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -260,11 +261,24 @@ router.get("/public/all", async (req, res) => {
           path: "parentCategory",
         },
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const vendorProducts = await VendorProduct.find({
+      isActive: true,
+    })
+      .populate("category")
+      .populate("subCategory")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const allProducts = [...products, ...vendorProducts].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
 
     return res.status(200).json({
       success: true,
-      data: products,
+      data: allProducts,
     });
   } catch (error) {
     console.log("PUBLIC PRODUCTS ERROR:", error);
@@ -282,12 +296,19 @@ router.get("/public/all", async (req, res) => {
 
 router.get("/public/:id", async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate({
+    let product = await Product.findById(req.params.id).populate({
       path: "subCategory",
       populate: {
         path: "parentCategory",
       },
-    });
+    }).lean();
+
+    if (!product) {
+      product = await VendorProduct.findById(req.params.id)
+        .populate("category")
+        .populate("subCategory")
+        .lean();
+    }
 
     if (!product) {
       return res.status(404).json({

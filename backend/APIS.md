@@ -2,7 +2,7 @@
 
 Generated: 2026-06-04
 
-**TOTAL 98 API's**
+**TOTAL 101 API's**
 
 This document lists all Express routes in the project with their HTTP method, full path (including router mounts), and source file.
 
@@ -85,13 +85,18 @@ This document lists all Express routes in the project with their HTTP method, fu
 - PUT  /api/admin/profile — Update admin profile (upload allowed) — [backend/routes/profile.js](backend/routes/profile.js)
 
 **Orders (/api/orders)**  
-- POST /api/orders/ — Create order (private) — [backend/routes/order.js](backend/routes/order.js)
+- POST /api/orders/ — Create order (private, supports both admin and vendor products natively) — [backend/routes/order.js](backend/routes/order.js)
 - GET  /api/orders/myorders — Get logged-in user's orders — [backend/routes/order.js](backend/routes/order.js)
 - GET  /api/orders/ — Admin: list all orders — [backend/routes/order.js](backend/routes/order.js)
 - GET  /api/orders/:id — Get single order (owner or admin) — [backend/routes/order.js](backend/routes/order.js)
 - PUT  /api/orders/:id/pay — Mark order as paid (callback) — [backend/routes/order.js](backend/routes/order.js)
 - PUT  /api/orders/:id/cancel — User cancels order — [backend/routes/order.js](backend/routes/order.js)
 - PUT  /api/orders/:id/status — Admin: update order status — [backend/routes/order.js](backend/routes/order.js)
+
+**Payment (/api/payment)**  
+- POST /api/payment/create-order — Create Razorpay order — [backend/routes/payment.js](backend/routes/payment.js)
+- POST /api/payment/verify — Verify Razorpay payment signature — [backend/routes/payment.js](backend/routes/payment.js)
+- POST /api/payment/webhook — Razorpay webhook handler — [backend/routes/payment.js](backend/routes/payment.js)
 
 **Users (/api/users)**  
 - GET  /api/users/stats — Admin dashboard counts (hot/cold/deactive) — [backend/routes/user.js](backend/routes/user.js)
