@@ -62,6 +62,13 @@ const cartItemSchema = new mongoose.Schema(
       type: String,
     },
 
+    size: { type: String },
+    color: { type: String },
+    variant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Variants",
+    },
+
     image: {
       type: String,
     },

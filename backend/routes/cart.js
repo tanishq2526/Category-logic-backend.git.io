@@ -7,6 +7,7 @@ import express from "express";
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 import VendorProduct from "../models/vendor/vendorProduct.js";
+import Variant from "../models/Variant.js";
 import Coupon from "../models/Coupon.js";
 import calculateCartTotals from "../utils/calculateCartTotal.js";
 
@@ -105,7 +106,7 @@ router.get("/", async (req, res) => {
 //
 router.post("/add", async (req, res) => {
   try {
-    const { productId, quantity = 1 } = req.body;
+    const { productId, quantity = 1, size, color, variant } = req.body;
 
     //
     // VALIDATION
@@ -150,11 +151,34 @@ router.post("/add", async (req, res) => {
       });
     }
 
-    if (product.stock < quantity) {
-      return res.status(400).json({
-        success: false,
-        message: `Only ${product.stock} items available`,
-      });
+    let variantDoc = null;
+    if (variant) {
+      variantDoc = await Variant.findById(variant);
+      if (!variantDoc) {
+        return res.status(404).json({
+          success: false,
+          message: "Variant not found",
+        });
+      }
+      if (variantDoc.status !== "Active") {
+        return res.status(400).json({
+          success: false,
+          message: "Variant unavailable",
+        });
+      }
+      if (variantDoc.stock < quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Only ${variantDoc.stock} items available for this variant`,
+        });
+      }
+    } else {
+      if (product.stock < quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Only ${product.stock} items available`,
+        });
+      }
     }
 
     //
@@ -172,12 +196,14 @@ router.post("/add", async (req, res) => {
     }
 
     const existingItemIndex = cart.items.findIndex(
-      (item) => item.product.toString() === productId,
+      (item) => item.product.toString() === productId && (item.variant ? item.variant.toString() === variant : !variant),
     );
 
-    const salePrice = productModel === "VendorProduct" ? (product.salePrice || 0) : (product.discountPrice || 0);
-    const finalPrice = salePrice > 0 ? salePrice : product.price;
+    const salePrice = variantDoc ? (variantDoc.discountPrice || 0) : (productModel === "VendorProduct" ? (product.salePrice || 0) : (product.discountPrice || 0));
+    const basePrice = variantDoc ? variantDoc.price : product.price;
+    const finalPrice = salePrice > 0 ? salePrice : basePrice;
     const image = product.image || (product.images && product.images[0]) || "";
+    const currentStock = variantDoc ? variantDoc.stock : product.stock;
 
     //
     // UPDATE EXISTING ITEM
@@ -187,16 +213,19 @@ router.post("/add", async (req, res) => {
 
       const updatedQuantity = existingQuantity + quantity;
 
-      if (updatedQuantity > product.stock) {
+      if (updatedQuantity > currentStock) {
         return res.status(400).json({
           success: false,
-          message: `Maximum available stock is ${product.stock}`,
+          message: `Maximum available stock is ${currentStock}`,
         });
       }
 
       cart.items[existingItemIndex] = {
         product: product._id,
         productModel,
+        variant: variantDoc ? variantDoc._id : undefined,
+        size,
+        color,
 
         name: product.name,
         slug: product.slug,
@@ -205,21 +234,24 @@ router.post("/add", async (req, res) => {
 
         quantity: updatedQuantity,
 
-        price: product.price,
+        price: basePrice,
         salePrice,
         finalPrice,
 
-        stock: product.stock,
+        stock: currentStock,
 
         subtotal: finalPrice * updatedQuantity,
 
-        isAvailable: product.stock > 0,
+        isAvailable: currentStock > 0,
       };
     } else {
       //
       cart.items.push({
         product: product._id,
         productModel,
+        variant: variantDoc ? variantDoc._id : undefined,
+        size,
+        color,
 
         name: product.name,
         slug: product.slug,
@@ -228,15 +260,15 @@ router.post("/add", async (req, res) => {
 
         quantity,
 
-        price: product.price,
+        price: basePrice,
         salePrice,
         finalPrice,
 
-        stock: product.stock,
+        stock: currentStock,
 
         subtotal: finalPrice * quantity,
 
-        isAvailable: product.stock > 0,
+        isAvailable: currentStock > 0,
       });
     }
 
@@ -272,7 +304,7 @@ router.post("/add", async (req, res) => {
 //
 router.put("/update/:productId", async (req, res) => {
   try {
-    const { quantity } = req.body;
+    const { quantity, size, color, variant } = req.body;
 
     if (quantity < 0) {
       return res.status(400).json({
@@ -293,7 +325,7 @@ router.put("/update/:productId", async (req, res) => {
     }
 
     const itemIndex = cart.items.findIndex(
-      (item) => item.product.toString() === req.params.productId,
+      (item) => item.product.toString() === req.params.productId && (item.variant ? item.variant.toString() === variant : !variant),
     );
 
     if (itemIndex === -1) {
@@ -324,20 +356,48 @@ router.put("/update/:productId", async (req, res) => {
         });
       }
 
-      if (quantity > product.stock) {
-        return res.status(400).json({
-          success: false,
-          message: `Only ${product.stock} items available`,
-        });
+      let variantDoc = null;
+      if (variant) {
+        variantDoc = await Variant.findById(variant);
+        if (!variantDoc) {
+          return res.status(404).json({
+            success: false,
+            message: "Variant not found",
+          });
+        }
+        if (variantDoc.status !== "Active") {
+          return res.status(400).json({
+            success: false,
+            message: "Variant unavailable",
+          });
+        }
+        if (quantity > variantDoc.stock) {
+          return res.status(400).json({
+            success: false,
+            message: `Only ${variantDoc.stock} items available for this variant`,
+          });
+        }
+      } else {
+        if (quantity > product.stock) {
+          return res.status(400).json({
+            success: false,
+            message: `Only ${product.stock} items available`,
+          });
+        }
       }
 
-      const salePrice = productModel === "VendorProduct" ? (product.salePrice || 0) : (product.discountPrice || 0);
-      const finalPrice = salePrice > 0 ? salePrice : product.price;
+      const salePrice = variantDoc ? (variantDoc.discountPrice || 0) : (productModel === "VendorProduct" ? (product.salePrice || 0) : (product.discountPrice || 0));
+      const basePrice = variantDoc ? variantDoc.price : product.price;
+      const finalPrice = salePrice > 0 ? salePrice : basePrice;
       const image = product.image || (product.images && product.images[0]) || "";
+      const currentStock = variantDoc ? variantDoc.stock : product.stock;
 
       cart.items[itemIndex] = {
         product: product._id,
         productModel,
+        variant: variantDoc ? variantDoc._id : undefined,
+        size,
+        color,
 
         name: product.name,
         slug: product.slug,
@@ -346,15 +406,15 @@ router.put("/update/:productId", async (req, res) => {
 
         quantity,
 
-        price: product.price,
+        price: basePrice,
         salePrice,
         finalPrice,
 
-        stock: product.stock,
+        stock: currentStock,
 
         subtotal: finalPrice * quantity,
 
-        isAvailable: product.stock > 0,
+        isAvailable: currentStock > 0,
       };
     }
 

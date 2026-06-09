@@ -14,6 +14,7 @@ import express from "express";
 import SubCategory from "../models/SubCategory.js";
 import Product from "../models/Product.js";
 import VendorProduct from "../models/vendor/vendorProduct.js";
+import Variant from "../models/Variant.js";
 import upload from "../middleware/upload.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -316,6 +317,13 @@ router.get("/public/:id", async (req, res) => {
         message: "Product not found",
       });
     }
+
+    const variants = await Variant.find({
+      parentProduct: product._id,
+      status: "Active",
+    }).lean();
+
+    product.variants = variants || [];
 
     return res.status(200).json({
       success: true,
