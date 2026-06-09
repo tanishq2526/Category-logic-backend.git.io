@@ -137,7 +137,7 @@ const PORT = process.env.PORT || 3000;
 
 // Build the list of allowed frontend origins from .env (supports comma-separated values)
 // Example .env:  CLIENT_URL=http://localhost:5173,https://mystore.com
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
+const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173,http://localhost:5174")
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
