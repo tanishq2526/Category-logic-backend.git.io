@@ -252,6 +252,11 @@ router.get("/all", protect, async (req, res) => {
 
 router.get("/public/all", async (req, res) => {
   try {
+    const { category, subCategory, search } = req.query;
+
+    // ======================================================
+    // FETCH ADMIN PRODUCTS
+    // ======================================================
     const products = await Product.find({
       status: "Active",
     })
@@ -264,6 +269,9 @@ router.get("/public/all", async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
+    // ======================================================
+    // FETCH VENDOR PRODUCTS
+    // ======================================================
     const vendorProducts = await VendorProduct.find({
       isActive: true,
     })
@@ -272,9 +280,57 @@ router.get("/public/all", async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    const allProducts = [...products, ...vendorProducts].sort(
+    // ======================================================
+    // MERGE PRODUCTS
+    // ======================================================
+    let allProducts = [...products, ...vendorProducts].sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
+
+    // ======================================================
+    // APPLY FILTERS
+    // ======================================================
+
+    // Filter by category (slug, name, or ID)
+    if (category) {
+      const catLower = String(category).toLowerCase();
+      allProducts = allProducts.filter((p) => {
+        const parentCat = p.subCategory?.parentCategory || p.category;
+        if (!parentCat) return false;
+        
+        const catId = String(parentCat._id || "").toLowerCase();
+        const catSlug = String(parentCat.slug || "").toLowerCase();
+        const catName = String(parentCat.name || "").toLowerCase();
+        
+        return catId === catLower || catSlug === catLower || catName === catLower;
+      });
+    }
+
+    // Filter by subcategory (slug, name, or ID)
+    if (subCategory) {
+      const subCatLower = String(subCategory).toLowerCase();
+      allProducts = allProducts.filter((p) => {
+        const sub = p.subCategory;
+        if (!sub) return false;
+        
+        const subId = String(sub._id || "").toLowerCase();
+        const subSlug = String(sub.slug || "").toLowerCase();
+        const subName = String(sub.name || "").toLowerCase();
+        
+        return subId === subCatLower || subSlug === subCatLower || subName === subCatLower;
+      });
+    }
+
+    // Filter by search query (product name or brand)
+    if (search) {
+      const searchLower = String(search).toLowerCase();
+      allProducts = allProducts.filter((p) => {
+        const name = String(p.name || "").toLowerCase();
+        const brand = String(p.brand || "").toLowerCase();
+        
+        return name.includes(searchLower) || brand.includes(searchLower);
+      });
+    }
 
     return res.status(200).json({
       success: true,

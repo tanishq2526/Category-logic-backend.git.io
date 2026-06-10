@@ -1,0 +1,295 @@
+/* ═══════════════════════════════════════════════════════
+   LOFT Editorial Product Gallery Styles
+   ═══════════════════════════════════════════════════════ */
+
+.pg-editorial {
+  --pg-gap: var(--ds-space-3, 12px);
+  --pg-radius: var(--ds-radius-md, 8px);
+  --pg-transition: all var(--ds-duration-normal, 220ms) var(--ds-ease-luxury);
+  width: 100%;
+}
+
+.pg-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 3 / 4;
+  background-color: var(--ds-color-surface-warm, #faf8f5);
+  border: 1px dashed var(--ds-color-border, #e4e7ec);
+  border-radius: var(--pg-radius);
+  color: var(--ds-color-text-subtle, #98a2b3);
+  font-family: var(--ds-font-sans), sans-serif;
+  font-size: var(--ds-text-sm, 14px);
+}
+
+/* ═══════════════════════════════════════════════════════
+   DESKTOP LAYOUT (Hover Sidebar + Hero Preview)
+   ═══════════════════════════════════════════════════════ */
+.pg-desktop-layout {
+  display: grid;
+  grid-template-columns: 90px 1fr; /* Sidebar of thumbnails + Hero preview */
+  gap: var(--ds-space-4, 16px);
+  width: 100%;
+  align-items: start;
+}
+
+.pg-desktop-layout.pg-single-image {
+  grid-template-columns: 1fr;
+}
+
+/* Sticky Anchors (Delicate thumbnails on Left) */
+.pg-desktop-anchors {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: sticky;
+  top: 140px; /* Aligned beneath header navigation */
+  align-self: start;
+  z-index: var(--ds-z-dropdown, 100);
+}
+
+.pg-desktop-anchor-btn {
+  width: 90px;
+  height: 120px; /* Responsive 90x120px thumbnails */
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all var(--ds-duration-normal, 220ms) ease;
+}
+
+.pg-desktop-anchor-btn:hover {
+  opacity: 0.9;
+}
+
+.pg-desktop-anchor-btn.active {
+  opacity: 1;
+  border-color: var(--ds-color-text, #111827);
+  box-shadow: var(--ds-shadow-xs, 0 1px 2px rgba(0, 0, 0, 0.08));
+}
+
+.pg-anchor-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Hero Container */
+.pg-desktop-hero-container {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+/* Hero Item - Responsive Sizing with 4:5 Aspect Ratio */
+.pg-desktop-hero-item {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: transparent;
+  box-shadow: none;
+  transition: box-shadow var(--ds-duration-slow) ease;
+}
+
+.pg-desktop-hero-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  padding: 0; /* No beige padding blocks or white space */
+  opacity: 0;
+  animation: pgFadeIn var(--ds-duration-normal, 220ms) var(--ds-ease-luxury) forwards;
+  transition: transform var(--ds-duration-slow, 400ms) var(--ds-ease-luxury);
+}
+
+.pg-desktop-hero-item:hover img {
+  /* scale is dynamically handled by JS mouse tracking */
+}
+
+@keyframes pgFadeIn {
+  from {
+    opacity: 0.65;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Hover Zoom Badge */
+.pg-hover-zoom-badge {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: var(--ds-radius-pill, 999px);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity var(--ds-duration-normal) ease, transform var(--ds-duration-normal) ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.pg-desktop-hero-item:hover .pg-hover-zoom-badge {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pg-hover-zoom-badge svg {
+  color: var(--ds-color-text, #111827);
+}
+
+.pg-hover-zoom-badge span {
+  font-family: var(--ds-font-sans), sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--ds-color-text, #111827);
+  text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE LAYOUT (CSS Snap Slider)
+   ═══════════════════════════════════════════════════════ */
+.pg-mobile-layout {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pg-mobile-slider-container {
+  display: flex;
+  width: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+.pg-mobile-slider-container::-webkit-scrollbar {
+  display: none;
+}
+
+.pg-mobile-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  aspect-ratio: 4 / 5; /* Consistent 4:5 aspect ratio */
+  scroll-snap-align: start;
+  overflow: hidden;
+  background-color: transparent;
+}
+
+.pg-mobile-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  padding: 0; /* Remove unnecessary white space and beige paddings */
+}
+
+/* Mobile Counter Overlay */
+.pg-mobile-counter {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: var(--ds-radius-pill, 999px);
+  font-family: var(--ds-font-sans), sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Mobile Thumbnail Strip below slider */
+.pg-mobile-thumbs-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 0;
+  justify-content: center;
+}
+
+.pg-mobile-thumbs-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.pg-mobile-thumb-dot-btn {
+  width: 90px;
+  height: 120px; /* Consistent 90x120px mobile thumbnails */
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: all var(--ds-duration-normal) ease;
+}
+
+.pg-mobile-thumb-dot-btn.active {
+  opacity: 1;
+  border-color: var(--ds-color-text, #111827);
+  transform: scale(1.02);
+}
+
+.pg-mobile-thumb-dot-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Accessible Focus States
+   ═══════════════════════════════════════════════════════ */
+.pg-desktop-hero-item:focus-visible {
+  outline: 2px solid var(--ds-color-accent, #a47551);
+  outline-offset: -4px;
+  border-radius: 12px;
+}
+
+.pg-desktop-anchor-btn:focus-visible {
+  outline: 2px solid var(--ds-color-accent, #a47551);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   REDUCED MOTION
+   ═══════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .pg-desktop-hero-item img,
+  .pg-hover-zoom-badge,
+  .pg-mobile-thumb-dot-btn {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}

@@ -95,19 +95,34 @@ router.post("/", protect, async (req, res) => {
         .json({ message: "One or more products not found" });
     }
 
+    const cart = await mongoose.model("Cart").findOne({ user: req.user._id }).populate("coupon");
+    let couponData = null;
+    
+    if (cart?.coupon && cart.coupon.isValidCoupon()) {
+      couponData = cart.coupon;
+    }
+
+    // Build a mock cart object to feed into calculateCartTotals
+    const mockCart = { items: [] };
+
     // ── Build server-authoritative order items ──────────────────────────────
     const dbOrderItems = orderItems.map((clientItem) => {
       const dbProduct = allProducts.find(
         (p) => p._id.toString() === clientItem.product,
       );
       const isVendor = vendorProducts.some(vp => vp._id.toString() === clientItem.product);
-      // Use discountPrice/salePrice when set and > 0; otherwise use list price
-      const actualPrice =
-        (dbProduct.discountPrice && dbProduct.discountPrice > 0)
-          ? dbProduct.discountPrice
-          : (dbProduct.salePrice && dbProduct.salePrice > 0)
-          ? dbProduct.salePrice
-          : dbProduct.price;
+      
+      // Fix pricing logic to perfectly match cart.js
+      const salePrice =
+        isVendor
+          ? dbProduct.salePrice || 0
+          : dbProduct.discountPrice || 0;
+      const actualPrice = salePrice > 0 ? salePrice : dbProduct.price;
+
+      mockCart.items.push({
+        finalPrice: actualPrice,
+        quantity: clientItem.qty,
+      });
 
       return {
         name: dbProduct.name,
@@ -119,15 +134,35 @@ router.post("/", protect, async (req, res) => {
       };
     });
 
-    // ── Price totals ────────────────────────────────────────────────────────
-    const itemsPrice = dbOrderItems.reduce(
-      (acc, i) => acc + i.price * i.qty,
-      0,
-    );
-    const shippingPrice =
-      itemsPrice > FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_RATE;
-    const taxPrice = TAX_RATE * itemsPrice;
-    const totalPrice = itemsPrice + shippingPrice + taxPrice;
+    // ── Price totals (using shared logic) ───────────────────────────────────
+    const { default: calculateCartTotals } = await import("../utils/calculateCartTotal.js");
+    
+    // Step 1: Calculate raw totals to check coupon validity
+    let totals = calculateCartTotals(mockCart, null);
+
+    // Step 2: Validate coupon minimum order amount and products
+    if (couponData) {
+      if (couponData.minimumOrderAmount && totals.subtotal < couponData.minimumOrderAmount) {
+        couponData = null;
+      } else if (couponData.type === "product") {
+        const hasEligibleProduct = dbOrderItems.some((item) =>
+          couponData.applicableProducts
+            .map((id) => id.toString())
+            .includes(item.product.toString()),
+        );
+        if (!hasEligibleProduct) {
+          couponData = null;
+        }
+      }
+    }
+
+    // Step 3: Final calculation with validated coupon
+    totals = calculateCartTotals(mockCart, couponData);
+
+    const itemsPrice = totals.subtotal;
+    const taxPrice = totals.tax;
+    const shippingPrice = totals.shipping;
+    const totalPrice = totals.grandTotal;
 
     // ── Mongo Transaction: save order + deduct stock atomically ─────────────
     // Requires a MongoDB Replica Set (Atlas supports this out of the box).
