@@ -143,6 +143,8 @@ router.post("/register", registerLimiter, async (req, res) => {
   }
 });
 
+
+
 // @route   POST /api/auth/register-admin
 // @desc    Register a new admin (requires ADMIN_SECRET)
 // @access  Private (secret key protected)

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useSocket } from "../../context/SocketContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const PAGE_SIZE = 10;
@@ -718,6 +719,37 @@ export default function Orderdetails() {
   const [page, setPage] = useState(1);
   const [detailOrder, setDetailOrder] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const { socket } = useSocket();
+
+  // ── Socket event listeners ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewOrder = (newOrder) => {
+      setOrders((prev) => {
+        // Prevent duplicates
+        if (prev.some((o) => o._id === newOrder._id)) return prev;
+        return [newOrder, ...prev];
+      });
+    };
+
+    const handleOrderUpdated = (updatedOrder) => {
+      setOrders((prev) =>
+        prev.map((o) => (o._id === updatedOrder._id ? updatedOrder : o))
+      );
+      setDetailOrder((prev) =>
+        prev && prev._id === updatedOrder._id ? updatedOrder : prev
+      );
+    };
+
+    socket.on("newOrder", handleNewOrder);
+    socket.on("orderUpdated", handleOrderUpdated);
+
+    return () => {
+      socket.off("newOrder", handleNewOrder);
+      socket.off("orderUpdated", handleOrderUpdated);
+    };
+  }, [socket]);
 
   // ── Fetch all orders ───────────────────────────────────────────────────────
   const fetchOrders = useCallback(async () => {

@@ -13,6 +13,7 @@ import express from "express";
 import Product from "../models/Product.js";
 import Variant from "../models/Variant.js";
 import upload from "../middleware/upload.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -30,7 +31,7 @@ const getImagePath = (files, field) => {
 };
 
 // Create variant product
-router.post("/create", variantUpload, async (req, res) => {
+router.post("/create", protect, variantUpload, async (req, res) => {
   try {
     const { parentProduct, name, brand, price, discountPercent, status } = req.body;
     const image = getImagePath(req.files, "image");
@@ -70,7 +71,7 @@ router.post("/create", variantUpload, async (req, res) => {
 });
 
 // Get all variants
-router.get("/all", async (req, res) => {
+router.get("/all", protect, async (req, res) => {
   try {
     const { status, product } = req.query;
     const query = {};
@@ -95,7 +96,7 @@ router.get("/all", async (req, res) => {
 });
 
 // Update variant product
-router.put("/update/:id", variantUpload, async (req, res) => {
+router.put("/update/:id", protect, variantUpload, async (req, res) => {
   try {
     const { parentProduct, name, brand, price, discountPercent, status } = req.body;
     const updatedData = {
@@ -140,7 +141,7 @@ router.put("/update/:id", variantUpload, async (req, res) => {
 });
 
 // Delete variant product
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id", protect, async (req, res) => {
   try {
     const variant = await Variant.findByIdAndDelete(req.params.id);
     if (!variant) {

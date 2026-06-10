@@ -11,11 +11,12 @@ import express from "express";
 import Category from "../models/Category.js";
 import SubCategory from "../models/SubCategory.js";
 import Product from "../models/Product.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // Create category
-router.post("/create", async (req, res) => {
+router.post("/create", protect, async (req, res) => {
   try {
     const { name, slug, status } = req.body;
 
@@ -41,7 +42,7 @@ router.post("/create", async (req, res) => {
 });
 
 // Get all categories (paginated)
-router.get("/all", async (req, res) => {
+router.get("/all", protect, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
@@ -71,7 +72,7 @@ router.get("/all", async (req, res) => {
 });
 
 // Search categories for dropdowns (limit defaults to 5)
-router.get("/search", async (req, res) => {
+router.get("/search", protect, async (req, res) => {
   try {
     const { q = "", limit = 5 } = req.query;
     const query = q ? { name: { $regex: q, $options: "i" }, status: "Active" } : { status: "Active" };
@@ -93,7 +94,7 @@ router.get("/public/all", async (req, res) => {
 });
 
 // update category
-router.put("/update/:id", async (req, res) => {
+router.put("/update/:id", protect, async (req, res) => {
   try {
     const ID = req.params.id;
     const updatedField = req.body;
@@ -137,7 +138,7 @@ router.put("/update/:id", async (req, res) => {
 });
 
 // Delete category
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id", protect, async (req, res) => {
     try {
       const ID = req.params.id;
       const deleteCategory = await Category.findByIdAndDelete(ID);

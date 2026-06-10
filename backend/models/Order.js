@@ -9,7 +9,7 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
       min: [1, "Quantity must be at least 1"],
     },
-    image: { type: String, required: true },
+    image: { type: String, default: "" },
     price: {
       type: Number,
       required: true,
@@ -18,7 +18,12 @@ const orderItemSchema = new mongoose.Schema(
     product: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "Product",
+      refPath: "productModel",
+    },
+    productModel: {
+      type: String,
+      enum: ["Product", "VendorProduct"],
+      default: "Product",
     },
   },
   { _id: false }, // sub-docs don't need their own _id
@@ -79,6 +84,16 @@ const orderSchema = new mongoose.Schema(
         message: "{VALUE} is not a valid order status",
       },
       default: "Pending",
+    },
+
+    // Razorpay specific fields
+    razorpayOrderId: { type: String },
+    razorpayPaymentId: { type: String },
+    razorpaySignature: { type: String },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed"],
+      default: "pending",
     },
 
     // Payment flags

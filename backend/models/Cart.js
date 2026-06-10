@@ -44,8 +44,13 @@ const cartItemSchema = new mongoose.Schema(
   {
     product: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Products",
+      refPath: "items.productModel",
       required: true,
+    },
+    productModel: {
+      type: String,
+      enum: ["Product", "VendorProduct"],
+      default: "Product",
     },
 
     name: {

@@ -29,9 +29,9 @@ export const getVendorOrders = async (req, res) => {
       const vendorItems = orderObj.orderItems.filter((item) =>
         vendorProductIds.some((id) => id.toString() === item.product.toString())
       );
-      
+
       const vendorTotal = vendorItems.reduce((acc, item) => acc + item.price * item.qty, 0);
-      
+
       return {
         ...orderObj,
         vendorItems,
