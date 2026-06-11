@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ShieldCheck,
   Truck,
@@ -22,7 +23,45 @@ export default function CheckoutOrderSummary({
   updateQuantity,
   removeFromCart,
   discount = 0,
+  giftCardDiscount = 0,
+  couponCode,
+  giftCardCode,
+  applyCoupon,
+  removeCoupon,
+  applyGiftcard,
+  removeGiftcard,
+  isApplyingCoupon,
+  isRemovingCoupon,
+  isApplyingGiftcard,
+  isRemovingGiftcard,
 }) {
+  const [couponInput, setCouponInput] = useState("");
+  const [giftCardInput, setGiftCardInput] = useState("");
+  const [couponError, setCouponError] = useState("");
+  const [giftCardError, setGiftCardError] = useState("");
+
+  const handleApplyCoupon = async (e) => {
+    e.preventDefault();
+    setCouponError("");
+    try {
+      await applyCoupon(couponInput);
+      setCouponInput("");
+    } catch (err) {
+      setCouponError(err.message || "Invalid coupon");
+    }
+  };
+
+  const handleApplyGiftcard = async (e) => {
+    e.preventDefault();
+    setGiftCardError("");
+    try {
+      await applyGiftcard(giftCardInput);
+      setGiftCardInput("");
+    } catch (err) {
+      setGiftCardError(err.message || "Invalid gift card");
+    }
+  };
+
   // Calculate dynamic estimated delivery dates (standard shipping = 3 to 7 days)
   const getEstimatedDelivery = () => {
     const today = new Date();
@@ -110,7 +149,7 @@ export default function CheckoutOrderSummary({
               </div>
               <div className="checkout-item-price">
                 {formatPrice(
-                  (Number(item.price) || 0) * (Number(item.quantity) || 0)
+                  (Number(item.finalPrice || item.price) || 0) * (Number(item.quantity) || 0)
                 )}
               </div>
             </div>
@@ -129,6 +168,87 @@ export default function CheckoutOrderSummary({
 
         <div className="checkout-divider"></div>
 
+        {/* PROMO CODES */}
+        <div className="checkout-promo-section">
+          {/* Coupon */}
+          <div className="promo-block" style={{ marginBottom: "15px" }}>
+            <h4 style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600", color: "var(--ds-color-secondary, #4a4a4a)" }}>Discount Coupon</h4>
+            {couponCode ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "6px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#166534", fontWeight: "500", fontSize: "14px" }}>
+                  <ShieldCheck size={16} />
+                  <span>{couponCode}</span>
+                </div>
+                <button 
+                  onClick={() => removeCoupon()}
+                  disabled={isRemovingCoupon}
+                  style={{ background: "none", border: "none", color: "#991b1b", cursor: "pointer", fontSize: "13px", fontWeight: "500" }}
+                >
+                  {isRemovingCoupon ? "Removing..." : "Remove"}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleApplyCoupon} style={{ display: "flex", gap: "8px" }}>
+                <input 
+                  type="text" 
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  placeholder="Enter code" 
+                  style={{ flex: 1, padding: "10px 12px", border: "1px solid #e5e5e5", borderRadius: "6px", fontSize: "14px", outline: "none" }}
+                />
+                <button 
+                  type="submit"
+                  disabled={!couponInput || isApplyingCoupon}
+                  style={{ padding: "0 16px", backgroundColor: "var(--ds-color-primary, #000)", color: "#fff", border: "none", borderRadius: "6px", fontWeight: "500", cursor: "pointer", opacity: (!couponInput || isApplyingCoupon) ? 0.5 : 1 }}
+                >
+                  {isApplyingCoupon ? "Applying..." : "Apply"}
+                </button>
+              </form>
+            )}
+            {couponError && <p style={{ color: "#dc2626", fontSize: "12px", marginTop: "4px" }}>{couponError}</p>}
+          </div>
+
+          {/* Gift Card */}
+          <div className="promo-block">
+            <h4 style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600", color: "var(--ds-color-secondary, #4a4a4a)" }}>Gift Card</h4>
+            {giftCardCode ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "6px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#166534", fontWeight: "500", fontSize: "14px" }}>
+                  <ShieldCheck size={16} />
+                  <span>{giftCardCode}</span>
+                </div>
+                <button 
+                  onClick={() => removeGiftcard()}
+                  disabled={isRemovingGiftcard}
+                  style={{ background: "none", border: "none", color: "#991b1b", cursor: "pointer", fontSize: "13px", fontWeight: "500" }}
+                >
+                  {isRemovingGiftcard ? "Removing..." : "Remove"}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleApplyGiftcard} style={{ display: "flex", gap: "8px" }}>
+                <input 
+                  type="text" 
+                  value={giftCardInput}
+                  onChange={(e) => setGiftCardInput(e.target.value.toUpperCase())}
+                  placeholder="Enter gift card" 
+                  style={{ flex: 1, padding: "10px 12px", border: "1px solid #e5e5e5", borderRadius: "6px", fontSize: "14px", outline: "none" }}
+                />
+                <button 
+                  type="submit"
+                  disabled={!giftCardInput || isApplyingGiftcard}
+                  style={{ padding: "0 16px", backgroundColor: "var(--ds-color-primary, #000)", color: "#fff", border: "none", borderRadius: "6px", fontWeight: "500", cursor: "pointer", opacity: (!giftCardInput || isApplyingGiftcard) ? 0.5 : 1 }}
+                >
+                  {isApplyingGiftcard ? "Applying..." : "Apply"}
+                </button>
+              </form>
+            )}
+            {giftCardError && <p style={{ color: "#dc2626", fontSize: "12px", marginTop: "4px" }}>{giftCardError}</p>}
+          </div>
+        </div>
+
+        <div className="checkout-divider"></div>
+
         <div className="checkout-totals">
           <div className="checkout-total-row">
             <span>Subtotal</span>
@@ -139,6 +259,14 @@ export default function CheckoutOrderSummary({
               <span>Coupon Discount</span>
               <span style={{ color: "var(--ds-color-success, #047857)" }}>
                 -{formatPrice(discount)}
+              </span>
+            </div>
+          )}
+          {giftCardDiscount > 0 && (
+            <div className="checkout-total-row">
+              <span>Gift Card</span>
+              <span style={{ color: "var(--ds-color-success, #047857)" }}>
+                -{formatPrice(giftCardDiscount)}
               </span>
             </div>
           )}

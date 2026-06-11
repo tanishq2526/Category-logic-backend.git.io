@@ -29,6 +29,7 @@ const loadRazorpayScript = () => {
 
 const CheckoutPage = () => {
   const [shippingMethod, setShippingMethod] = useState("standard");
+  const [paymentMethod, setPaymentMethod] = useState("Razorpay");
   const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(1);
   const [orderError, setOrderError] = useState("");
@@ -36,8 +37,8 @@ const CheckoutPage = () => {
   const [isPaying, setIsPaying] = useState(false);
   const [isPreparingPayment, setIsPreparingPayment] = useState(false);
 
-  const { cartItems, cartCount, cartSubtotal, cartTotals } = useCartState();
-  const { updateQuantity, removeFromCart, clearCart } = useCartActions();
+  const { cartItems, cartCount, cartSubtotal, cartTotals, couponCode, giftCardCode } = useCartState();
+  const { updateQuantity, removeFromCart, clearCart, applyCoupon, removeCoupon, applyGiftcard, removeGiftcard, isApplyingCoupon, isRemovingCoupon, isApplyingGiftcard, isRemovingGiftcard } = useCartActions();
   const { user } = useAuthState();
   const checkoutMutation = useCheckoutMutation();
 
@@ -94,6 +95,7 @@ const CheckoutPage = () => {
 
   const subtotalSafe = Number(cartTotals?.subtotal) || 0;
   const discount = Number(cartTotals?.discount) || 0;
+  const giftCardDiscount = Number(cartTotals?.giftCardDiscount) || 0;
   const shippingCost = Number(cartTotals?.shipping) || 0;
   const tax = Number(cartTotals?.tax) || 0;
   const total = Number(cartTotals?.grandTotal) || 0;
@@ -136,7 +138,7 @@ const CheckoutPage = () => {
           postalCode: formData.postalCode,
           country: formData.country,
         },
-        paymentMethod: "Razorpay",
+        paymentMethod: paymentMethod,
       };
 
       const dbOrder = await checkoutMutation.mutateAsync(orderPayload);
@@ -144,6 +146,15 @@ const CheckoutPage = () => {
 
       if (!orderId) {
         throw new Error("Failed to create order in database");
+      }
+
+      // If COD, we are done
+      if (paymentMethod === "COD") {
+        clearCart();
+        navigate(`/order-success/${orderId}`);
+        setIsPaying(false);
+        setIsPreparingPayment(false);
+        return;
       }
 
       // Create order with Razorpay backend
@@ -316,7 +327,11 @@ const CheckoutPage = () => {
             )}
 
             {activeStep === 2 && (
-              <CheckoutPaymentForm handlePaymentSubmit={handlePaymentSubmit} />
+              <CheckoutPaymentForm 
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                handlePaymentSubmit={handlePaymentSubmit} 
+              />
             )}
 
             {activeStep === 3 && (
@@ -324,7 +339,14 @@ const CheckoutPage = () => {
                 formData={formData}
                 orderError={orderError}
                 isPending={checkoutMutation.isPending}
-                handlePlaceOrder={() => setIsPaymentModalOpen(true)}
+                handlePlaceOrder={() => {
+                  if (paymentMethod === "COD") {
+                    handlePlaceOrder();
+                  } else {
+                    setIsPaymentModalOpen(true);
+                  }
+                }}
+                paymentMethod={paymentMethod}
               />
             )}
           </div>
@@ -337,8 +359,19 @@ const CheckoutPage = () => {
             tax={tax}
             total={total}
             discount={discount}
+            giftCardDiscount={giftCardDiscount}
             updateQuantity={updateQuantity}
             removeFromCart={removeFromCart}
+            couponCode={couponCode}
+            giftCardCode={giftCardCode}
+            applyCoupon={applyCoupon}
+            removeCoupon={removeCoupon}
+            applyGiftcard={applyGiftcard}
+            removeGiftcard={removeGiftcard}
+            isApplyingCoupon={isApplyingCoupon}
+            isRemovingCoupon={isRemovingCoupon}
+            isApplyingGiftcard={isApplyingGiftcard}
+            isRemovingGiftcard={isRemovingGiftcard}
           />
         </div>
       </div>
