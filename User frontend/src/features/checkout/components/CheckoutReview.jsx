@@ -5,6 +5,7 @@ const CheckoutReview = ({
   orderError,
   isPending,
   handlePlaceOrder,
+  paymentMethod,
 }) => {
   return (
     <div className="checkout-step-form">
@@ -45,14 +46,29 @@ const CheckoutReview = ({
               </div>
             </div>
             <div className="checkout-review-card-body">
-              <p className="method-name">Razorpay Secure Portal</p>
-              <p className="method-desc">
-                Your credentials are encrypted in transit. Card, UPI, and banking details are processed off-site via Razorpay's verified, low-PCI scope gateway.
-              </p>
-              <div className="method-badge">
-                <ShieldCheck size={11} />
-                <span>100% Encrypted</span>
-              </div>
+              {paymentMethod === "COD" ? (
+                <>
+                  <p className="method-name">Cash on Delivery (COD)</p>
+                  <p className="method-desc">
+                    Pay in cash or via UPI at the time of delivery. Please keep exact change ready if paying by cash.
+                  </p>
+                  <div className="method-badge">
+                    <ShieldCheck size={11} />
+                    <span>Pay on Arrival</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="method-name">Razorpay Secure Portal</p>
+                  <p className="method-desc">
+                    Your credentials are encrypted in transit. Card, UPI, and banking details are processed off-site via Razorpay's verified, low-PCI scope gateway.
+                  </p>
+                  <div className="method-badge">
+                    <ShieldCheck size={11} />
+                    <span>100% Encrypted</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -70,7 +86,7 @@ const CheckoutReview = ({
           className="checkout-continue-btn place-order-btn"
           disabled={isPending}
         >
-          {isPending ? "CONNECTING..." : "PLACE ORDER & PAY"}
+          {isPending ? "CONNECTING..." : paymentMethod === "COD" ? "PLACE ORDER" : "PLACE ORDER & PAY"}
           {!isPending && <ChevronRight size={18} />}
         </button>
       </div>

@@ -157,15 +157,75 @@ export const useCartMutations = () => {
     },
   });
 
+  const applyCoupon = useMutation({
+    mutationFn: async (code) => {
+      if (!isAuthenticated) throw new Error("Please log in to apply coupons");
+      const res = await cartApi.applyCoupon(code);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to apply coupon");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      if (isAuthenticated) queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
+
+  const removeCoupon = useMutation({
+    mutationFn: async () => {
+      if (!isAuthenticated) return;
+      const res = await cartApi.removeCoupon();
+      if (!res.ok) throw new Error("Failed to remove coupon");
+    },
+    onSuccess: () => {
+      if (isAuthenticated) queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
+
+  const applyGiftcard = useMutation({
+    mutationFn: async (code) => {
+      if (!isAuthenticated) throw new Error("Please log in to apply gift cards");
+      const res = await cartApi.applyGiftcard(code);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to apply gift card");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      if (isAuthenticated) queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
+
+  const removeGiftcard = useMutation({
+    mutationFn: async () => {
+      if (!isAuthenticated) return;
+      const res = await cartApi.removeGiftcard();
+      if (!res.ok) throw new Error("Failed to remove gift card");
+    },
+    onSuccess: () => {
+      if (isAuthenticated) queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
+
   return {
     addToCart: addToCart.mutateAsync,
     removeFromCart: removeFromCart.mutateAsync,
     updateQuantity: updateQuantity.mutateAsync,
     clearCart: clearCart.mutateAsync,
+    applyCoupon: applyCoupon.mutateAsync,
+    removeCoupon: removeCoupon.mutateAsync,
+    applyGiftcard: applyGiftcard.mutateAsync,
+    removeGiftcard: removeGiftcard.mutateAsync,
     isAdding: addToCart.isPending,
     isRemoving: removeFromCart.isPending,
     isUpdating: updateQuantity.isPending,
     isClearing: clearCart.isPending,
+    isApplyingCoupon: applyCoupon.isPending,
+    isRemovingCoupon: removeCoupon.isPending,
+    isApplyingGiftcard: applyGiftcard.isPending,
+    isRemovingGiftcard: removeGiftcard.isPending,
   };
 };
 
@@ -175,21 +235,23 @@ export const useCartState = () => {
   // Handle both array (guest) and object (auth) shapes safely
   const cartItems = Array.isArray(cartData) ? cartData : (cartData?.items || []);
   const cartCount = cartItems.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
-  const cartSubtotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+  const cartSubtotal = cartItems.reduce((sum, item) => sum + (Number(item.finalPrice || item.price) || 0) * (Number(item.quantity) || 0), 0);
   
   const TAX_PERCENTAGE = 18;
   const FREE_SHIPPING_THRESHOLD = 1000;
   const SHIPPING_CHARGE = 99;
 
   const fallbackDiscount = 0;
-  const fallbackDiscountedSubtotal = Math.max(cartSubtotal - fallbackDiscount, 0);
+  const fallbackGiftCardDiscount = 0;
+  const fallbackDiscountedSubtotal = Math.max(cartSubtotal - fallbackDiscount - fallbackGiftCardDiscount, 0);
   const fallbackTax = Number(((fallbackDiscountedSubtotal * TAX_PERCENTAGE) / 100).toFixed(2));
-  const fallbackShipping = fallbackDiscountedSubtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
+  const fallbackShipping = cartSubtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
   const fallbackGrandTotal = Number((fallbackDiscountedSubtotal + fallbackTax + fallbackShipping).toFixed(2));
 
   const cartTotals = (!Array.isArray(cartData) && cartData?.totals) ? cartData.totals : {
     subtotal: cartSubtotal,
     discount: fallbackDiscount,
+    giftCardDiscount: fallbackGiftCardDiscount,
     tax: fallbackTax,
     shipping: fallbackShipping,
     grandTotal: fallbackGrandTotal,
@@ -197,6 +259,7 @@ export const useCartState = () => {
   };
   
   const couponCode = (!Array.isArray(cartData) && cartData?.couponCode) ? cartData.couponCode : null;
+  const giftCardCode = (!Array.isArray(cartData) && cartData?.giftCardCode) ? cartData.giftCardCode : null;
   
   return {
     cartItems,
@@ -204,6 +267,7 @@ export const useCartState = () => {
     cartSubtotal,
     cartTotals,
     couponCode,
+    giftCardCode,
     syncing
   };
 };

@@ -23,10 +23,10 @@ const OrderSuccessPage = () => {
   const { clearCart } = useCartActions();
 
   useEffect(() => {
-    if (order?.isPaid) {
+    if (order?.isPaid || order?.paymentMethod === "COD") {
       clearCart();
     }
-  }, [order?.isPaid, clearCart]);
+  }, [order?.isPaid, order?.paymentMethod, clearCart]);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -51,7 +51,7 @@ const OrderSuccessPage = () => {
 
     fetchOrder();
 
-    if (order?.isPaid || order?.orderStatus === "Delivered" || order?.orderStatus === "Cancelled") {
+    if (order?.isPaid || order?.paymentMethod === "COD" || order?.orderStatus === "Delivered" || order?.orderStatus === "Cancelled") {
       return;
     }
 
@@ -60,7 +60,7 @@ const OrderSuccessPage = () => {
     }, 3000);
 
     return () => window.clearInterval(intervalId);
-  }, [orderId, order?.isPaid, order?.orderStatus]);
+  }, [orderId, order?.isPaid, order?.orderStatus, order?.paymentMethod]);
 
   const getDeliveryEstimate = (createdAt, method) => {
     const date = createdAt ? new Date(createdAt) : new Date();
@@ -131,7 +131,7 @@ const OrderSuccessPage = () => {
     },
   };
 
-  if (order && !order.isPaid) {
+  if (order && !order.isPaid && order.paymentMethod !== "COD") {
     return (
       <div className="loft-osp-wrapper">
         <div className="loft-osp-container">

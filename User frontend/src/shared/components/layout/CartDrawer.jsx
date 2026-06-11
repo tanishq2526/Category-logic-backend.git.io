@@ -149,7 +149,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                         </button>
                       </div>
                       <span className="item-price">
-                        {formatPrice(item.price * item.quantity)}
+                        {formatPrice((item.finalPrice || item.price) * item.quantity)}
                       </span>
                     </div>
                   </div>

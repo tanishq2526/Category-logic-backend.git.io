@@ -6,3 +6,9 @@ export const updateCartItem = (productId, data) => client.put(`/cart/update/${pr
 export const removeCartItem = (productId) => client.delete(`/cart/remove/${productId}`);
 export const clearCart = () => client.delete("/cart/clear");
 export const mergeCart = (items) => client.post("/cart/merge", { items });
+
+export const applyCoupon = (code) => client.post("/cart/apply-coupon", { code });
+export const removeCoupon = () => client.delete("/cart/remove-coupon");
+
+export const applyGiftcard = (code) => client.post("/cart/apply-giftcard", { code });
+export const removeGiftcard = () => client.delete("/cart/remove-giftcard");
