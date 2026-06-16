@@ -16,7 +16,6 @@ import {
   ToggleLeft,
   ToggleRight,
   Tag,
-import {
   FolderOpen,
   ImageOff,
 } from "lucide-react";
