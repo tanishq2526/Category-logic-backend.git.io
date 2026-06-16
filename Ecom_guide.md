@@ -27,6 +27,44 @@ As the project reached maturity, we performed a massive cleanup operation. Dozen
 
 ---
 
+## 🛠️ How It Works (Examples & Workflows)
+
+### A. JWT Token Authentication
+The platform uses JSON Web Tokens (JWT) for stateless secure authentication.
+**How it works:**
+1. User/Vendor/Admin sends credentials to `/api/auth/login`.
+2. Server validates credentials and generates a secure JWT.
+3. Client stores the token and includes it in the `Authorization` header for all protected API calls.
+
+**Example API Request:**
+```javascript
+fetch('/api/vendor/my-shop/products', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    'Content-Type': 'application/json'
+  }
+});
+```
+
+### B. Vendor Registration & Login Workflow
+Vendors follow a strict onboarding pipeline.
+1. **Registration**: A prospective vendor submits details (Shop Name, Phone, etc.) to `/api/auth/register-vendor`. This atomically creates a `User` (role: vendor) and a linked `VendorProfile` with status `pending`.
+2. **Blocked Login**: If the vendor tries to log in immediately via the unified `/api/auth/login`, access is denied:
+   `{"success": false, "message": "Your vendor account is pending approval."}`
+3. **Dashboard Redirect**: Once approved by Admin, logging in successfully returns the user payload along with the `vendorSlug`. The frontend uses this slug to route the vendor to their dedicated dashboard (e.g., `/vendor/my-shop/dashboard`).
+
+### C. Admin Approval Workflow
+Admins control platform access, ensuring quality and security.
+1. Admin logs into the dashboard and fetches vendors via `/api/admin/vendors`.
+2. Admin reviews pending vendor details.
+3. Admin approves the vendor by sending a PUT request:
+   **Endpoint:** `/api/admin/vendors/:id/status`
+   **Body:** `{"status": "active"}`
+4. The vendor can now successfully log in and start managing their catalog.
+
+---
+
 ## 🔌 API Endpoints Reference
 
 All endpoints are prefixed with `http://localhost:5000` (or your production URL).

@@ -63,7 +63,7 @@ export default function LoginPage() {
         }
 
         login(data?.token, data?.user);
-        
+
         if (data?.user?.role === "admin" || data?.user?.role === "vendor") {
           const adminUrl = import.meta.env.VITE_ADMIN_PORTAL_URL || "http://localhost:5174";
           window.location.href = `${adminUrl}/login?token=${encodeURIComponent(data.token)}&user=${encodeURIComponent(JSON.stringify(data.user))}`;
@@ -119,8 +119,8 @@ export default function LoginPage() {
           ) : (
             <div className="login-top-left-group">
               <span className="login-top-text">Customer access?</span>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="login-top-link-btn"
                 onClick={() => {
                   setIsAdminMode(false);
@@ -138,8 +138,8 @@ export default function LoginPage() {
             {isAdminMode ? "Admin Portal" : "Login to your account"}
           </h2>
           <p className="login-subheading">
-            {isAdminMode 
-              ? "Access the LOFT management console." 
+            {isAdminMode
+              ? "Access the LOFT management console."
               : "Enter your details below to access your account."}
           </p>
 
