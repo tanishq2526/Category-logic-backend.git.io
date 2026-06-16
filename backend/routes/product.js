@@ -1,14 +1,3 @@
-/*
- * Handover note: Product API.
- * Admin endpoints create/update/delete products with uploaded images; public endpoints expose active products
- * and populate category/subcategory references for customer browsing.
- */
-// const express = require("express");
-// const router = express.Router();
-
-// const SubCategory = require("../models/SubCategory");
-// const Product = require("../models/Product");
-// const upload = require("../middleware/upload");
 
 import express from "express";
 import SubCategory from "../models/SubCategory.js";
@@ -31,6 +20,8 @@ const cpUpload = upload.fields([
   { name: "image3", maxCount: 1 },
   { name: "image4", maxCount: 1 },
 ]);
+
+
 
 // ======================================================
 // HELPER FUNCTION
