@@ -2,7 +2,7 @@
 import express from "express";
 import SubCategory from "../models/SubCategory.js";
 import Product from "../models/Product.js";
-import VendorProduct from "../models/vendor/vendorProduct.js";
+import VendorProduct from "../models/Vendor/vendorProduct.js";
 import Variant from "../models/Variant.js";
 import upload from "../middleware/upload.js";
 import { protect } from "../middleware/authMiddleware.js";
