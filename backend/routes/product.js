@@ -2,7 +2,7 @@
 import express from "express";
 import SubCategory from "../models/SubCategory.js";
 import Product from "../models/Product.js";
-import VendorProduct from "../models/Vendor/vendorProduct.js";
+import VendorProduct from "../models/vendor/vendorProduct.js";
 import Variant from "../models/Variant.js";
 import upload from "../middleware/upload.js";
 import { protect } from "../middleware/authMiddleware.js";
@@ -121,7 +121,7 @@ router.post("/create", protect, cpUpload, async (req, res) => {
       status,
       stock,
       slug,
-      
+
       image: getImagePath(req.files, "image") || image,
       image1: getImagePath(req.files, "image1") || image1,
       image2: getImagePath(req.files, "image2") || image2,
@@ -297,11 +297,11 @@ router.get("/public/all", async (req, res) => {
       allProducts = allProducts.filter((p) => {
         const parentCat = p.subCategory?.parentCategory || p.category;
         if (!parentCat) return false;
-        
+
         const catId = String(parentCat._id || "").toLowerCase();
         const catSlug = String(parentCat.slug || "").toLowerCase();
         const catName = String(parentCat.name || "").toLowerCase();
-        
+
         return catId === catLower || catSlug === catLower || catName === catLower;
       });
     }
@@ -312,11 +312,11 @@ router.get("/public/all", async (req, res) => {
       allProducts = allProducts.filter((p) => {
         const sub = p.subCategory;
         if (!sub) return false;
-        
+
         const subId = String(sub._id || "").toLowerCase();
         const subSlug = String(sub.slug || "").toLowerCase();
         const subName = String(sub.name || "").toLowerCase();
-        
+
         return subId === subCatLower || subSlug === subCatLower || subName === subCatLower;
       });
     }
@@ -327,7 +327,7 @@ router.get("/public/all", async (req, res) => {
       allProducts = allProducts.filter((p) => {
         const name = String(p.name || "").toLowerCase();
         const brand = String(p.brand || "").toLowerCase();
-        
+
         return name.includes(searchLower) || brand.includes(searchLower);
       });
     }
