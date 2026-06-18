@@ -48,8 +48,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // ── Shared / layout components ─────────────────────────────────────────────────
 import Sidebar       from "./components/Sidebar";
-import VendorSidebar from "./components/VendorSidebar";
+import VendorSidebar from "./components/vendorSidebar"; //Case sensitive problem 
 import ProtectedRoute from "./components/ProtectedRoute";
+
 
 // ── Public pages ───────────────────────────────────────────────────────────────
 import Login    from "./pages/Login";
