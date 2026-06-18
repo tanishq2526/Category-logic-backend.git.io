@@ -55,6 +55,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login    from "./pages/Login";
 import UserHome from "./pages/UserHome";
 
+
+
 // ── Admin pages ────────────────────────────────────────────────────────────────
 import Dashboard          from "./pages/admin/Dashboard";
 import OrderDetails       from "./pages/admin/Orderdetail";        // orders list
@@ -71,13 +73,13 @@ import GiftCards          from "./pages/admin/GiftCards";
 import Profile            from "./pages/admin/Profile";
 
 // ── Vendor pages ───────────────────────────────────────────────────────────────
-import VendorDashboard      from "./pages/vendor/VendorDashboard";
-import VendorCategories     from "./pages/vendor/VendorCategories";
-import VendorSubCategories  from "./pages/vendor/VendorSubCategories";
-import VendorProducts       from "./pages/vendor/VendorProducts";
-import VendorCoupons        from "./pages/vendor/VendorCoupons";
-import VendorOrders         from "./pages/vendor/VendorOrders";
-import VendorProfile        from "./pages/vendor/VendorProfile";
+import VendorDashboard      from "./pages/vendor/vendorDashboard";
+import VendorCategories     from "./pages/vendor/vendorCategories";
+import VendorSubCategories  from "./pages/vendor/vendorSubCategories";
+import VendorProducts       from "./pages/vendor/vendorProducts";
+import VendorCoupons        from "./pages/vendor/vendorCoupons";
+import VendorOrders         from "./pages/vendor/vendorOrders";
+import VendorProfile        from "./pages/vendor/vendorProfile";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminLayout
