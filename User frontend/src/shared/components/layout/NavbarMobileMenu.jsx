@@ -1,9 +1,10 @@
 import { X, User, Heart, ShoppingCart } from "lucide-react";
+import { useFocusTrap } from "@/shared/hooks/useFocusTrap";
+import { useEscapeKey } from "@/shared/hooks/useEscapeKey";
 
 const NavbarMobileMenu = ({
   mobileMenuOpen,
   setMobileMenuOpen,
-  mobileMenuRef,
   categories,
   handleMobileNav,
   isAuthenticated,
@@ -12,6 +13,9 @@ const NavbarMobileMenu = ({
   cartCount,
   logout,
 }) => {
+  const drawerRef = useFocusTrap(mobileMenuOpen);
+  useEscapeKey(() => setMobileMenuOpen(false), mobileMenuOpen);
+
   if (!mobileMenuOpen) return null;
 
   return (
@@ -20,7 +24,7 @@ const NavbarMobileMenu = ({
       onClick={() => setMobileMenuOpen(false)}
     >
       <div
-        ref={mobileMenuRef}
+        ref={drawerRef}
         className="mobile-menu"
         id="mobile-menu"
         role="dialog"
@@ -43,14 +47,17 @@ const NavbarMobileMenu = ({
           <div className="mobile-menu-group">
             <span className="mobile-menu-label">Shop</span>
             {categories && categories.length > 0 ? (
-              categories.map((cat) => (
-                <button
-                  key={cat._id}
-                  onClick={() => handleMobileNav(`/shop/${cat.slug}`)}
-                >
-                  {cat.name}
-                </button>
-              ))
+              categories.map((cat) => {
+                const slug = cat.slug || cat.name?.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || cat._id;
+                return (
+                  <button
+                    key={cat._id}
+                    onClick={() => handleMobileNav(`/shop/${slug}`)}
+                  >
+                    {cat.name}
+                  </button>
+                );
+              })
             ) : (
               <button onClick={() => handleMobileNav("/shop")}>Shop All</button>
             )}

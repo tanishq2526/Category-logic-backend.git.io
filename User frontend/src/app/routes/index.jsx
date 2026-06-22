@@ -8,12 +8,15 @@ const Home = lazy(() => import("../../pages/shop/Home"));
 const ProductDetail = lazy(() => import("../../pages/shop/ProductDetail"));
 const CategoryPage = lazy(() => import("../../pages/shop/CategoryPage"));
 const SubCategoryPage = lazy(() => import("../../pages/shop/SubCategoryPage"));
+const ShopPage = lazy(() => import("../../pages/shop/ShopPage"));
+const InfoPage = lazy(() => import("../../pages/info/InfoPage"));
 
 const CheckoutPage = lazy(() => import("../../pages/user/CheckoutPage"));
 const OrderSuccessPage = lazy(
   () => import("../../pages/user/OrderSuccessPage"),
 );
 const ProfilePage = lazy(() => import("../../pages/user/ProfilePage"));
+const OrderDetailsPage = lazy(() => import("../../features/orders/pages/OrderDetailsPage"));
 const NotFound = lazy(() => import("../../pages/NotFound"));
 const LoginPage = lazy(() => import("../../pages/auth/LoginPage"));
 const SignupPage = lazy(() => import("../../pages/auth/SignupPage"));
@@ -24,6 +27,14 @@ export const routes = [
     element: (
       <WithLayout>
         <Home />
+      </WithLayout>
+    ),
+  },
+  {
+    path: "/shop",
+    element: (
+      <WithLayout>
+        <ShopPage />
       </WithLayout>
     ),
   },
@@ -98,6 +109,96 @@ export const routes = [
           <ProfilePage />
         </WithLayout>
       </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/orders/:orderId",
+    element: (
+      <ProtectedRoute>
+        <WithLayout>
+          <OrderDetailsPage />
+        </WithLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/info/:pageSlug",
+    element: (
+      <WithLayout>
+        <InfoPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: "/about",
+    element: (
+      <WithLayout>
+        <InfoPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: "/contact",
+    element: (
+      <WithLayout>
+        <InfoPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: "/faq",
+    element: (
+      <WithLayout>
+        <InfoPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: "/privacy",
+    element: (
+      <WithLayout>
+        <InfoPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: "/terms",
+    element: (
+      <WithLayout>
+        <InfoPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: "/shipping-policy",
+    element: (
+      <WithLayout>
+        <InfoPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: "/return-policy",
+    element: (
+      <WithLayout>
+        <InfoPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: "/careers",
+    element: (
+      <WithLayout>
+        <InfoPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: "/help",
+    element: (
+      <WithLayout>
+        <InfoPage />
+      </WithLayout>
     ),
   },
   {

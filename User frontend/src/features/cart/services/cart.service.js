@@ -31,9 +31,10 @@ export const cartApi = {
   mergeCart: (items) => wrapAxios(api.mergeCart(items)),
 
   applyCoupon: (code) => wrapAxios(api.applyCoupon(code)),
+
   removeCoupon: () => wrapAxios(api.removeCoupon()),
 
-  applyGiftcard: (code) => wrapAxios(api.applyGiftcard(code)),
-  removeGiftcard: () => wrapAxios(api.removeGiftcard()),
-};
+  applyGiftCard: (code) => wrapAxios(api.applyGiftCard(code)),
 
+  removeGiftCard: () => wrapAxios(api.removeGiftCard()),
+};

@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { orderApi } from "@/features/checkout/services/checkout.service";
 import "../../styles/OrderSuccessPage.css";
-import { useCartActions } from "@/features/cart/hooks/useCart";
 import { formatPrice } from "@/utils/pricing";
 import { motion } from "framer-motion";
 import logger from "@/shared/utils/logger";
@@ -20,13 +19,6 @@ const OrderSuccessPage = () => {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { clearCart } = useCartActions();
-
-  useEffect(() => {
-    if (order?.isPaid || order?.paymentMethod === "COD") {
-      clearCart();
-    }
-  }, [order?.isPaid, order?.paymentMethod, clearCart]);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -45,13 +37,14 @@ const OrderSuccessPage = () => {
     };
 
     if (!orderId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }
 
     fetchOrder();
 
-    if (order?.isPaid || order?.paymentMethod === "COD" || order?.orderStatus === "Delivered" || order?.orderStatus === "Cancelled") {
+    if (order?.isPaid || order?.orderStatus === "Delivered" || order?.orderStatus === "Cancelled") {
       return;
     }
 
@@ -60,7 +53,7 @@ const OrderSuccessPage = () => {
     }, 3000);
 
     return () => window.clearInterval(intervalId);
-  }, [orderId, order?.isPaid, order?.orderStatus, order?.paymentMethod]);
+  }, [orderId, order?.isPaid, order?.orderStatus]);
 
   const getDeliveryEstimate = (createdAt, method) => {
     const date = createdAt ? new Date(createdAt) : new Date();
@@ -246,7 +239,9 @@ const OrderSuccessPage = () => {
             <div className="loft-osp-col">
               <span className="loft-osp-lbl">EMAIL CONFIRMATION</span>
               <span className="loft-osp-val italic font-sm">
-                A confirmation email will be sent once Razorpay verification completes.
+                {order?.paymentMethod === "COD"
+                  ? "A confirmation email has been dispatched for your records."
+                  : "A confirmation email will be sent once Razorpay verification completes."}
               </span>
             </div>
           </div>

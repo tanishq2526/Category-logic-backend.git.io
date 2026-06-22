@@ -7,15 +7,13 @@ import Reveal from "@/shared/components/ui/Reveal";
 const Home = () => {
   return (
     <>
-      <Reveal direction="up" duration={1.0}>
-        <HeroSection />
-      </Reveal>
+      <HeroSection />
       
       <Reveal direction="up" delay={0.1}>
         <ProductSlider 
           title="Trending Now" 
           fetchUrl="/api/product/public/all?sort=popularity&limit=8"
-          viewAllLink="/shop/women"
+          viewAllLink="/shop"
         />
       </Reveal>
       
@@ -27,7 +25,7 @@ const Home = () => {
         <ProductSlider 
           title="New Arrivals" 
           fetchUrl="/api/product/public/all?sort=newest&limit=8"
-          viewAllLink="/shop/new-arrivals"
+          viewAllLink="/shop?sort=newest"
         />
       </Reveal>
 

@@ -1,90 +1,113 @@
-import { ShieldCheck, Lock, CreditCard, Banknote } from "lucide-react";
+import { ShieldCheck, Lock, Truck } from "lucide-react";
 
-const CheckoutPaymentForm = ({ paymentMethod, setPaymentMethod, handlePaymentSubmit }) => {
+const CheckoutPaymentForm = ({ handlePaymentSubmit, paymentMethod, setPaymentMethod, appliedGiftCard }) => {
   return (
     <form onSubmit={handlePaymentSubmit} className="checkout-step-form">
       <div className="checkout-section">
         <h2 className="checkout-section-title">Payment Method</h2>
         <p className="checkout-section-desc-light">
-          Choose how you would like to pay for your order.
+          All transactions are secured, encrypted, and processed through our verified gateway.
         </p>
 
-        <div className="checkout-payment-methods-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {/* Razorpay Option */}
-          <div 
-            className={`checkout-payment-method-card ${paymentMethod === "Razorpay" ? "active" : ""}`}
-            onClick={() => setPaymentMethod("Razorpay")}
-            style={{ cursor: "pointer", border: paymentMethod === "Razorpay" ? "2px solid #1f2a44" : "1px solid #e5e7eb", borderRadius: "10px", padding: "16px", background: paymentMethod === "Razorpay" ? "#f8fafc" : "#fff" }}
+        {appliedGiftCard && (
+          <div className="payment-method-giftcard-warning" style={{
+            marginBottom: "16px",
+            padding: "12px 16px",
+            backgroundColor: "rgba(180, 83, 9, 0.08)",
+            border: "1px solid rgba(180, 83, 9, 0.2)",
+            borderRadius: "8px",
+            fontSize: "13px",
+            color: "var(--ds-color-accent, #a47551)",
+            lineHeight: 1.5
+          }}>
+            <strong>Gift Card Applied:</strong> Online payment (Razorpay) is restricted to ensure payment integrity. Please select **Cash On Delivery (COD)** for the remaining balance. If the balance is ₹0, no payment is required.
+          </div>
+        )}
+
+        <div className="checkout-payment-methods-list">
+          {/* Active Razorpay Card Option */}
+          <div
+            className={`checkout-payment-method-card ${paymentMethod === "Razorpay" ? "active" : ""} ${appliedGiftCard ? "disabled" : ""}`}
+            onClick={() => {
+              if (!appliedGiftCard) {
+                setPaymentMethod("Razorpay");
+              }
+            }}
+            style={{ 
+              cursor: appliedGiftCard ? "not-allowed" : "pointer",
+              opacity: appliedGiftCard ? 0.5 : 1
+            }}
           >
-            <div className="payment-method-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div className="payment-method-radio-group" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <div className={`payment-method-custom-radio ${paymentMethod === "Razorpay" ? "checked" : ""}`} style={{ width: "18px", height: "18px", borderRadius: "50%", border: "2px solid #1f2a44", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {paymentMethod === "Razorpay" && <div className="radio-inner-dot" style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#1f2a44" }}></div>}
+            <div className="payment-method-card-header">
+              <div className="payment-method-radio-group">
+                <div className={`payment-method-custom-radio ${paymentMethod === "Razorpay" && !appliedGiftCard ? "checked" : ""}`}>
+                  {paymentMethod === "Razorpay" && !appliedGiftCard && <div className="radio-inner-dot"></div>}
                 </div>
-                <div className="payment-method-title-wrap" style={{ display: "flex", flexDirection: "column" }}>
-                  <span className="payment-method-name" style={{ fontWeight: 600, fontSize: "14px", color: "#1f2a44" }}>Pay Online</span>
-                  <span className="payment-method-subtitle" style={{ fontSize: "12px", color: "#64748b" }}>Cards, UPI, Netbanking, Wallets</span>
+                <div className="payment-method-title-wrap">
+                  <span className="payment-method-name">Razorpay Secure Gateway</span>
+                  <span className="payment-method-subtitle">Cards, UPI, Netbanking, Wallets</span>
                 </div>
               </div>
-              <ShieldCheck size={18} className="payment-method-shield-icon" style={{ color: "#1f2a44" }} />
+              <ShieldCheck size={18} className="payment-method-shield-icon" />
             </div>
 
-            {paymentMethod === "Razorpay" && (
-              <div className="payment-method-card-body" style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #e5e7eb" }}>
-                <p className="payment-method-explanation" style={{ fontSize: "12px", color: "#64748b", lineHeight: "1.5", marginBottom: "12px" }}>
-                  Upon clicking "Place Order & Pay" in the next step, you will transact through Razorpay's secure modal.
+            {paymentMethod === "Razorpay" && !appliedGiftCard && (
+              <div className="payment-method-card-body">
+                <p className="payment-method-explanation">
+                  Upon clicking "Place Order & Pay" in the next step, you will transact through Razorpay's secure modal. Credit/debit card numbers, UPI PINs, and banking credentials are never processed or stored by LOFT.
                 </p>
-                <div className="payment-method-gateways-row" style={{ display: "flex", gap: "8px" }}>
-                  <span className="gateway-badge" style={{ fontSize: "10px", padding: "4px 8px", background: "#e2e8f0", borderRadius: "4px", color: "#475569", fontWeight: 600 }}>CARDS</span>
-                  <span className="gateway-badge" style={{ fontSize: "10px", padding: "4px 8px", background: "#e2e8f0", borderRadius: "4px", color: "#475569", fontWeight: 600 }}>UPI</span>
-                  <span className="gateway-badge" style={{ fontSize: "10px", padding: "4px 8px", background: "#e2e8f0", borderRadius: "4px", color: "#475569", fontWeight: 600 }}>NETBANKING</span>
+                <div className="payment-method-gateways-row">
+                  <span className="gateway-badge">CARDS</span>
+                  <span className="gateway-badge">UPI / GPAY</span>
+                  <span className="gateway-badge">NETBANKING</span>
+                  <span className="gateway-badge">WALLETS</span>
                 </div>
               </div>
             )}
           </div>
 
-          {/* COD Option */}
-          <div 
+          {/* Cash On Delivery Option */}
+          <div
             className={`checkout-payment-method-card ${paymentMethod === "COD" ? "active" : ""}`}
             onClick={() => setPaymentMethod("COD")}
-            style={{ cursor: "pointer", border: paymentMethod === "COD" ? "2px solid #1f2a44" : "1px solid #e5e7eb", borderRadius: "10px", padding: "16px", background: paymentMethod === "COD" ? "#f8fafc" : "#fff" }}
+            style={{ cursor: "pointer", marginTop: "16px" }}
           >
-            <div className="payment-method-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div className="payment-method-radio-group" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <div className={`payment-method-custom-radio ${paymentMethod === "COD" ? "checked" : ""}`} style={{ width: "18px", height: "18px", borderRadius: "50%", border: "2px solid #1f2a44", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {paymentMethod === "COD" && <div className="radio-inner-dot" style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#1f2a44" }}></div>}
+            <div className="payment-method-card-header">
+              <div className="payment-method-radio-group">
+                <div className={`payment-method-custom-radio ${paymentMethod === "COD" ? "checked" : ""}`}>
+                  {paymentMethod === "COD" && <div className="radio-inner-dot"></div>}
                 </div>
-                <div className="payment-method-title-wrap" style={{ display: "flex", flexDirection: "column" }}>
-                  <span className="payment-method-name" style={{ fontWeight: 600, fontSize: "14px", color: "#1f2a44" }}>Cash on Delivery (COD)</span>
-                  <span className="payment-method-subtitle" style={{ fontSize: "12px", color: "#64748b" }}>Pay at your doorstep</span>
+                <div className="payment-method-title-wrap">
+                  <span className="payment-method-name">Cash On Delivery (COD)</span>
+                  <span className="payment-method-subtitle">Pay with cash upon delivery of your order</span>
                 </div>
               </div>
-              <Banknote size={18} className="payment-method-shield-icon" style={{ color: "#1f2a44" }} />
+              <Truck size={18} className="payment-method-shield-icon" style={{ color: "var(--ds-color-accent)" }} />
             </div>
 
             {paymentMethod === "COD" && (
-              <div className="payment-method-card-body" style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #e5e7eb" }}>
-                <p className="payment-method-explanation" style={{ fontSize: "12px", color: "#64748b", lineHeight: "1.5" }}>
-                  You can pay in cash or via UPI to the delivery executive when your order arrives. Please keep the exact change ready if paying in cash.
+              <div className="payment-method-card-body">
+                <p className="payment-method-explanation">
+                  Pay with cash directly to the courier agent when your order is delivered to your doorstep. Please ensure you have the exact amount ready to facilitate a smooth transaction.
                 </p>
               </div>
             )}
           </div>
         </div>
 
-        <div className="checkout-features-compact" style={{ marginTop: "24px", display: "flex", flexDirection: "column", gap: "8px" }}>
-          <div className="checkout-feature-item-compact" style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#475569" }}>
-            <Lock size={13} className="promise-icon-gold" style={{ color: "#d97706" }} />
+        <div className="checkout-features-compact">
+          <div className="checkout-feature-item-compact">
+            <Lock size={13} className="promise-icon-gold" />
             <span>Signature Verified Encryption</span>
           </div>
-          <div className="checkout-feature-item-compact" style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#475569" }}>
-            <ShieldCheck size={13} className="promise-icon-gold" style={{ color: "#d97706" }} />
+          <div className="checkout-feature-item-compact">
+            <ShieldCheck size={13} className="promise-icon-gold" />
             <span>Zero Card Storage (PCI Compliant)</span>
           </div>
         </div>
       </div>
 
-      <button type="submit" className="checkout-continue-btn" style={{ width: "100%", padding: "14px", background: "#1f2a44", color: "#fff", border: "none", borderRadius: "6px", fontWeight: 600, marginTop: "24px", cursor: "pointer" }}>
+      <button type="submit" className="checkout-continue-btn">
         CONTINUE TO REVIEW
       </button>
     </form>

@@ -2,10 +2,10 @@ import { ChevronRight, MapPin, CreditCard, ShieldCheck } from "lucide-react";
 
 const CheckoutReview = ({
   formData,
+  paymentMethod,
   orderError,
   isPending,
   handlePlaceOrder,
-  paymentMethod,
 }) => {
   return (
     <div className="checkout-step-form">
@@ -46,29 +46,16 @@ const CheckoutReview = ({
               </div>
             </div>
             <div className="checkout-review-card-body">
-              {paymentMethod === "COD" ? (
-                <>
-                  <p className="method-name">Cash on Delivery (COD)</p>
-                  <p className="method-desc">
-                    Pay in cash or via UPI at the time of delivery. Please keep exact change ready if paying by cash.
-                  </p>
-                  <div className="method-badge">
-                    <ShieldCheck size={11} />
-                    <span>Pay on Arrival</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="method-name">Razorpay Secure Portal</p>
-                  <p className="method-desc">
-                    Your credentials are encrypted in transit. Card, UPI, and banking details are processed off-site via Razorpay's verified, low-PCI scope gateway.
-                  </p>
-                  <div className="method-badge">
-                    <ShieldCheck size={11} />
-                    <span>100% Encrypted</span>
-                  </div>
-                </>
-              )}
+              <p className="method-name">{paymentMethod === "COD" ? "Cash On Delivery (COD)" : "Razorpay Secure Portal"}</p>
+              <p className="method-desc">
+                {paymentMethod === "COD"
+                  ? "You will pay in cash to the delivery agent once your package arrives at your shipping address. No online transaction is required."
+                  : "Your credentials are encrypted in transit. Card, UPI, and banking details are processed off-site via Razorpay's verified, low-PCI scope gateway."}
+              </p>
+              <div className="method-badge">
+                <ShieldCheck size={11} />
+                <span>{paymentMethod === "COD" ? "Verified COD Order" : "100% Encrypted"}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -86,7 +73,7 @@ const CheckoutReview = ({
           className="checkout-continue-btn place-order-btn"
           disabled={isPending}
         >
-          {isPending ? "CONNECTING..." : paymentMethod === "COD" ? "PLACE ORDER" : "PLACE ORDER & PAY"}
+          {isPending ? "CONNECTING..." : paymentMethod === "COD" ? "PLACE ORDER (COD)" : "PLACE ORDER & PAY"}
           {!isPending && <ChevronRight size={18} />}
         </button>
       </div>

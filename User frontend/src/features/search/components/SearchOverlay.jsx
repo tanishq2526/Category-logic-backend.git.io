@@ -43,9 +43,9 @@ export default function SearchOverlay({
     const normalizedTerm = nextTerm.trim();
     if (!normalizedTerm) return;
 
-    setSearchQuery(normalizedTerm);
     addSearchTerm(normalizedTerm);
-    inputRef.current?.focus();
+    closeSearch();
+    navigate(`/shop?search=${encodeURIComponent(normalizedTerm)}`);
   };
 
   const keyboardNavigation = useSearchKeyboardNavigation({
@@ -216,7 +216,7 @@ export default function SearchOverlay({
 
               <div className="search-results-layout__right">
                 <SearchResultsPreview
-                  query={trimmedQuery}
+                  query={suggestionState.query}
                   onSelect={handleClose}
                 />
               </div>
