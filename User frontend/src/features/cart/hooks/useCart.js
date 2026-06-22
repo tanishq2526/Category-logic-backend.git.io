@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cartApi } from "../services/cart.service";
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import logger from '@/shared/utils/logger';
+import { useGiftCard } from "@/context/GiftCardContext";
 
 const STORAGE_KEY = "loft_cart";
 
@@ -24,23 +25,36 @@ const saveLocalCart = (items) => {
 
 export const useCartQuery = () => {
   const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
+
+  const mergeCartMutation = useMutation({
+    mutationKey: ["mergeCart"],
+    mutationFn: async (localItems) => {
+      const res = await cartApi.mergeCart(localItems);
+      if (!res.ok) throw new Error("Merge failed");
+      return res;
+    },
+    onSuccess: () => {
+      localStorage.removeItem(STORAGE_KEY);
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const localItems = loadLocalCart();
+    if (localItems.length > 0) {
+      if (queryClient.isMutating({ mutationKey: ["mergeCart"] }) === 0) {
+        mergeCartMutation.mutate(localItems);
+      }
+    }
+  }, [isAuthenticated, queryClient]);
   
   return useQuery({
     queryKey: ["cart", isAuthenticated],
     queryFn: async () => {
       if (!isAuthenticated) {
         return loadLocalCart();
-      }
-      
-      // Attempt merge if local cart has items
-      const localItems = loadLocalCart();
-      if (localItems.length > 0) {
-        try {
-          await cartApi.mergeCart(localItems);
-          localStorage.removeItem(STORAGE_KEY);
-        } catch (err) {
-          logger.error("Cart merge failed", err);
-        }
       }
       
       const res = await cartApi.getCart();
@@ -68,10 +82,14 @@ export const useCartMutations = () => {
 
   const addToCart = useMutation({
     mutationFn: async ({ product, size = "", color = "", quantity = 1 }) => {
+      const effectivePrice = (product.discountPrice && product.discountPrice < product.price)
+        ? product.discountPrice
+        : product.price;
+
       const itemPayload = {
         productId: product.productId || product.id,
         name: product.name,
-        price: product.discountPrice || product.price,
+        price: effectivePrice,
         quantity,
         size,
         color,
@@ -96,6 +114,7 @@ export const useCartMutations = () => {
       if (!res.ok) throw new Error("Failed to add item");
     },
     onSuccess: () => {
+      window.dispatchEvent(new CustomEvent("cart-item-added"));
       if (isAuthenticated) queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
   });
@@ -159,7 +178,6 @@ export const useCartMutations = () => {
 
   const applyCoupon = useMutation({
     mutationFn: async (code) => {
-      if (!isAuthenticated) throw new Error("Please log in to apply coupons");
       const res = await cartApi.applyCoupon(code);
       if (!res.ok) {
         const err = await res.json();
@@ -168,44 +186,21 @@ export const useCartMutations = () => {
       return res.json();
     },
     onSuccess: () => {
-      if (isAuthenticated) queryClient.invalidateQueries({ queryKey: ["cart"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
   });
 
   const removeCoupon = useMutation({
     mutationFn: async () => {
-      if (!isAuthenticated) return;
       const res = await cartApi.removeCoupon();
-      if (!res.ok) throw new Error("Failed to remove coupon");
-    },
-    onSuccess: () => {
-      if (isAuthenticated) queryClient.invalidateQueries({ queryKey: ["cart"] });
-    },
-  });
-
-  const applyGiftcard = useMutation({
-    mutationFn: async (code) => {
-      if (!isAuthenticated) throw new Error("Please log in to apply gift cards");
-      const res = await cartApi.applyGiftcard(code);
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.message || "Failed to apply gift card");
+        throw new Error(err.message || "Failed to remove coupon");
       }
       return res.json();
     },
     onSuccess: () => {
-      if (isAuthenticated) queryClient.invalidateQueries({ queryKey: ["cart"] });
-    },
-  });
-
-  const removeGiftcard = useMutation({
-    mutationFn: async () => {
-      if (!isAuthenticated) return;
-      const res = await cartApi.removeGiftcard();
-      if (!res.ok) throw new Error("Failed to remove gift card");
-    },
-    onSuccess: () => {
-      if (isAuthenticated) queryClient.invalidateQueries({ queryKey: ["cart"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
   });
 
@@ -216,21 +211,18 @@ export const useCartMutations = () => {
     clearCart: clearCart.mutateAsync,
     applyCoupon: applyCoupon.mutateAsync,
     removeCoupon: removeCoupon.mutateAsync,
-    applyGiftcard: applyGiftcard.mutateAsync,
-    removeGiftcard: removeGiftcard.mutateAsync,
     isAdding: addToCart.isPending,
     isRemoving: removeFromCart.isPending,
     isUpdating: updateQuantity.isPending,
     isClearing: clearCart.isPending,
-    isApplyingCoupon: applyCoupon.isPending,
+    isApplying: applyCoupon.isPending,
     isRemovingCoupon: removeCoupon.isPending,
-    isApplyingGiftcard: applyGiftcard.isPending,
-    isRemovingGiftcard: removeGiftcard.isPending,
   };
 };
 
 export const useCartState = () => {
   const { data: cartData, isLoading: syncing } = useCartQuery();
+  const { appliedGiftCard, applyGiftCard, removeGiftCard } = useGiftCard();
   
   // Handle both array (guest) and object (auth) shapes safely
   const cartItems = Array.isArray(cartData) ? cartData : (cartData?.items || []);
@@ -242,32 +234,54 @@ export const useCartState = () => {
   const SHIPPING_CHARGE = 99;
 
   const fallbackDiscount = 0;
-  const fallbackGiftCardDiscount = 0;
-  const fallbackDiscountedSubtotal = Math.max(cartSubtotal - fallbackDiscount - fallbackGiftCardDiscount, 0);
+  const fallbackDiscountedSubtotal = Math.max(cartSubtotal - fallbackDiscount, 0);
   const fallbackTax = Number(((fallbackDiscountedSubtotal * TAX_PERCENTAGE) / 100).toFixed(2));
-  const fallbackShipping = cartSubtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
+  const fallbackShipping = fallbackDiscountedSubtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
   const fallbackGrandTotal = Number((fallbackDiscountedSubtotal + fallbackTax + fallbackShipping).toFixed(2));
 
-  const cartTotals = (!Array.isArray(cartData) && cartData?.totals) ? cartData.totals : {
+  const cartTotals = (!Array.isArray(cartData) && cartData?.totals) ? { ...cartData.totals } : {
     subtotal: cartSubtotal,
     discount: fallbackDiscount,
-    giftCardDiscount: fallbackGiftCardDiscount,
     tax: fallbackTax,
     shipping: fallbackShipping,
     grandTotal: fallbackGrandTotal,
     totalItems: cartCount
   };
+
+  const isGuest = Array.isArray(cartData) || !cartData?.totals;
+
+  const subtotal = Number(cartTotals.subtotal) || 0;
+  const couponDiscount = Number(cartTotals.discount) || 0;
+  const tax = Number(cartTotals.tax) || 0;
+  const shipping = Number(cartTotals.shipping) || 0;
+  const totalBeforeGiftCard = subtotal - couponDiscount + tax + shipping;
+
+  const giftCardDiscount = isGuest
+    ? (appliedGiftCard ? Number(Math.min(appliedGiftCard.giftCardValue, totalBeforeGiftCard).toFixed(2)) : 0)
+    : (Number(cartTotals.giftCardDiscount) || 0);
+
+  const grandTotal = isGuest
+    ? Number(Math.max(0, totalBeforeGiftCard - giftCardDiscount).toFixed(2))
+    : (Number(cartTotals.grandTotal) || 0);
+
+  const finalTotals = {
+    ...cartTotals,
+    grandTotal,
+    giftCardDiscount,
+  };
   
   const couponCode = (!Array.isArray(cartData) && cartData?.couponCode) ? cartData.couponCode : null;
-  const giftCardCode = (!Array.isArray(cartData) && cartData?.giftCardCode) ? cartData.giftCardCode : null;
   
   return {
     cartItems,
     cartCount,
     cartSubtotal,
-    cartTotals,
+    cartTotals: finalTotals,
     couponCode,
-    giftCardCode,
+    appliedGiftCard,
+    giftCardDiscount,
+    applyGiftCard,
+    removeGiftCard,
     syncing
   };
 };

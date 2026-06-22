@@ -7,27 +7,31 @@ import {
   ChevronLeft,
   ChevronRight,
   ShoppingBag,
-  ChevronDown,
-  ChevronUp,
   FileText,
   Sliders,
   Shirt,
+  Heart,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useProductQuery } from "../../features/products/hooks/useProductQuery";
 import { useCart } from "@/features/cart/hooks/useCart";
+import { useWishlist } from "@/features/wishlist/hooks/useWishlist";
 import { useToast } from "../../context/ToastContext";
 import ProductCard from "@/features/products/components/ProductCard";
-import { IMAGE_FALLBACK } from "../../constants/images";
 import "../../styles/ProductDetail.css";
 import ProductGallery from "@/features/products/components/ProductGallery";
 import LightboxModal from "@/features/products/components/LightboxModal";
-import { API_BASE_URL, buildApiUrl } from "@/shared/utils/api";
+import { resolveProductImage } from "@/shared/utils/api";
 import authFetch from "@/shared/utils/http";
+import logger from "@/shared/utils/logger";
 import { recordRecentlyViewedProduct } from "../../features/search/hooks/useRecentlyViewedProducts";
 import { siteContent } from "@/config/siteContent";
 import { formatPrice } from "../../utils/pricing";
 import VariantSelector from "@/features/products/components/VariantSelector";
+import StickyPurchaseBar from "@/features/products/components/StickyPurchaseBar";
+import StockIndicator from "@/features/products/components/StockIndicator";
+import StyleInspiration from "@/features/products/components/StyleInspiration";
+import SizeGuideModal from "@/features/products/components/SizeGuideModal";
 
 const colorMap = {
   black: "#1a1a1a",
@@ -153,15 +157,10 @@ const ProductAccordion = ({ product }) => {
             type="button"
           >
             <span className="pd-accordion-title-wrap">
-              <span className="pd-accordion-icon-left">{item.icon}</span>
               <span className="pd-accordion-title-text">{item.title}</span>
             </span>
             <span className="pd-accordion-chevron">
-              {openIndex === i ? (
-                <ChevronUp size={16} strokeWidth={2} />
-              ) : (
-                <ChevronDown size={16} strokeWidth={2} />
-              )}
+              {openIndex === i ? "−" : "+"}
             </span>
           </button>
           <div className="pd-accordion-content-wrap">
@@ -206,7 +205,7 @@ const ProductDetail = () => {
         );
         return found ? found._id : "invalid";
       } catch (err) {
-        console.error("Slug resolution error:", err);
+        logger.error("Slug resolution error:", err);
         return "invalid";
       }
     },
@@ -237,18 +236,39 @@ const ProductDetail = () => {
   });
 
   const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [addedToCart, setAddedToCart] = useState(false);
   const toast = useToast();
+  const wishlisted = isInWishlist(product?._id);
+
+  const handleWishlistToggle = (e) => {
+    e.preventDefault();
+    toggleWishlist({
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      brand: product.brand,
+      category: product.category,
+    });
+  };
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [isMobileView, setIsMobileView] = useState(
-    typeof window !== "undefined" ? window.innerWidth <= 1200 : false,
+    typeof window !== "undefined" ? window.innerWidth <= 900 : false,
   );
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const similarGridRef = useRef(null);
+  
+  // New States and Refs for PDP Redesign
+  const [sizeError, setSizeError] = useState("");
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+  const [stickyVisible, setStickyVisible] = useState(false);
+  const ctaRef = useRef(null);
+  const sizeRef = useRef(null);
   
   // Lightbox States
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -388,10 +408,6 @@ const ProductDetail = () => {
     setSelectedColor("");
   };
 
-  const handleSizeChange = (val) => {
-    setSelectedSize(val);
-  };
-
   const handleColorChange = (val) => {
     setSelectedColor(val);
   };
@@ -399,17 +415,6 @@ const ProductDetail = () => {
   const isProductInStock = useMemo(() => {
     if (!activeProduct) return false;
     return typeof activeProduct.stock === "number" ? activeProduct.stock > 0 : activeProduct.inStock !== false;
-  }, [activeProduct]);
-
-  const stockStatus = useMemo(() => {
-    const stock = activeProduct?.stock ?? 0;
-    if (stock <= 0) {
-      return { label: "Out of Stock", class: "out" };
-    }
-    if (stock <= 5) {
-      return { label: "Low Stock", class: "low" };
-    }
-    return { label: "In Stock", class: "in" };
   }, [activeProduct]);
 
   const isDiscounted = useMemo(() => {
@@ -447,20 +452,17 @@ const ProductDetail = () => {
   const galleryImages = useMemo(() => {
     if (!activeProduct) return [];
 
-    const resolveImage = (path) => {
-      if (!path) return null;
-      if (path.startsWith("http://") || path.startsWith("https://")) {
-        return path;
-      }
-      return `${API_BASE_URL}${path}`;
-    };
-
     const images = [];
-    if (activeProduct.image) images.push(resolveImage(activeProduct.image));
-    if (activeProduct.image1) images.push(resolveImage(activeProduct.image1));
-    if (activeProduct.image2) images.push(resolveImage(activeProduct.image2));
-    if (activeProduct.image3) images.push(resolveImage(activeProduct.image3));
-    if (activeProduct.image4) images.push(resolveImage(activeProduct.image4));
+    if (activeProduct.image) images.push(resolveProductImage(activeProduct.image));
+    if (activeProduct.image1) images.push(resolveProductImage(activeProduct.image1));
+    if (activeProduct.image2) images.push(resolveProductImage(activeProduct.image2));
+    if (activeProduct.image3) images.push(resolveProductImage(activeProduct.image3));
+    if (activeProduct.image4) images.push(resolveProductImage(activeProduct.image4));
+    if (Array.isArray(activeProduct.images)) {
+      activeProduct.images.forEach((img) => {
+        if (img) images.push(resolveProductImage(img));
+      });
+    }
 
     // Exclude duplicates and empty values
     return Array.from(new Set(images.filter(Boolean)));
@@ -482,12 +484,31 @@ const ProductDetail = () => {
   }, [galleryItems]);
 
   useEffect(() => {
-    const onResize = () => setIsMobileView(window.innerWidth <= 1200);
+    const onResize = () => setIsMobileView(window.innerWidth <= 900);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  useEffect(() => {
+    if (!ctaRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setStickyVisible(!entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(ctaRef.current);
+    return () => observer.disconnect();
+  }, [loading]);
+
   const handleAddToCart = () => {
+    if (availableSizes.length > 0 && !selectedSize) {
+      setSizeError("Please select a size to continue");
+      sizeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    setSizeError("");
+
     const qtyToSubmit = Math.max(1, parseInt(quantity, 10) || 1);
     addToCart({
       product: {
@@ -502,10 +523,10 @@ const ProductDetail = () => {
       color: selectedColor,
       quantity: qtyToSubmit,
     });
-    toast.success(`${activeProduct.name} added to cart!`);
+    toast.success(`${activeProduct.name} added to bag!`);
     setAddedToCart(true);
     setQuantity(1);
-    setTimeout(() => setAddedToCart(false), 2000);
+    setTimeout(() => setAddedToCart(false), 2500);
   };
 
   if (loading) {
@@ -623,7 +644,7 @@ const ProductDetail = () => {
 
         <div className="pd-info-section">
           <div>
-            <span className="pd-category">{activeProduct.brand}</span>
+            <span className="pd-brand-label">{activeProduct.brand}</span>
             <h1 className="pd-title">{activeProduct.name}</h1>
 
             <div className="pd-price-block">
@@ -676,9 +697,10 @@ const ProductDetail = () => {
                 +
               </button>
             </div>
-            <div className={`ds-badge ds-badge--${stockStatus.class === "in" ? "success" : stockStatus.class === "low" ? "warning" : "danger"}`}>
-              <span>{stockStatus.label}</span>
-            </div>
+            <StockIndicator
+              inStock={isProductInStock}
+              stockCount={typeof activeProduct.stock === "number" ? activeProduct.stock : undefined}
+            />
           </div>
  
           {/* Style Selector (only if backend provides variants) */}
@@ -695,14 +717,21 @@ const ProductDetail = () => {
  
           {/* Size Selector (only if backend provides sizes) */}
           {availableSizes.length > 0 && (
-            <VariantSelector
-              name="size"
-              label="Select Size"
-              type="size"
-              options={sizeOptions}
-              selectedValue={selectedSize}
-              onChange={handleSizeChange}
-            />
+            <div ref={sizeRef}>
+              <VariantSelector
+                name="size"
+                label="Select Size"
+                type="size"
+                options={sizeOptions}
+                selectedValue={selectedSize}
+                onChange={(val) => {
+                  setSelectedSize(val);
+                  setSizeError("");
+                }}
+                onSizeGuideClick={() => setIsSizeGuideOpen(true)}
+                error={sizeError}
+              />
+            </div>
           )}
  
           {/* Color Selector (only if backend provides colors) */}
@@ -717,39 +746,25 @@ const ProductDetail = () => {
             />
           )}
 
-          <div className="pd-actions">
-            <button
-              className="pd-add-to-cart"
-              onClick={handleAddToCart}
-              disabled={!isProductInStock}
-            >
-              <ShoppingBag size={18} style={{ marginRight: "8px", verticalAlign: "middle" }} />
-              {addedToCart ? "Added ✓" : "Add to Cart"}
-            </button>
-            <button
-              className="pd-buy-now"
-              onClick={() => {
-                const qtyToSubmit = Math.max(1, parseInt(quantity, 10) || 1);
-                addToCart({
-                  product: {
-                    productId: product._id,
-                    id: product._id,
-                    name: activeProduct.name,
-                    price: payPrice,
-                    image: activeProduct.image,
-                    brand: activeProduct.brand,
-                  },
-                  size: selectedSize,
-                  color: selectedColor,
-                  quantity: qtyToSubmit,
-                });
-                toast.success(`${activeProduct.name} added to cart!`);
-                navigate("/checkout");
-              }}
-              disabled={!isProductInStock}
-            >
-              Buy Now
-            </button>
+          <div className="pd-actions" ref={ctaRef}>
+            <div className="pd-actions-row">
+              <button
+                className={`pd-add-to-cart ${addedToCart ? "added" : ""}`}
+                onClick={handleAddToCart}
+                disabled={!isProductInStock}
+              >
+                <ShoppingBag size={18} style={{ marginRight: "8px", verticalAlign: "middle" }} />
+                {addedToCart ? "Added ✓" : "Add to Bag"}
+              </button>
+              <button
+                type="button"
+                className={`pd-wishlist-btn ${wishlisted ? "active" : ""}`}
+                onClick={handleWishlistToggle}
+                aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+              >
+                <Heart size={20} fill={wishlisted ? "var(--ds-color-danger, #8B3A3A)" : "none"} color={wishlisted ? "var(--ds-color-danger, #8B3A3A)" : "currentColor"} />
+              </button>
+            </div>
           </div>
 
           {/* Store-level Trust Badges (No product generated content) */}
@@ -773,41 +788,52 @@ const ProductDetail = () => {
         </div>
       </section>
 
-      <section className="pd-similar">
-        <div className="pd-similar-header">
-          <h2 className="pd-similar-title">You May Also Like</h2>
-          <div className="pd-similar-controls">
-            <Link to={`/shop/${displayCategory}`} className="pd-view-all">
-              View all
-            </Link>
-            <button
-              className="pd-arrow-btn"
-              aria-label="Previous"
-              onClick={() => scrollSimilar("left")}
-              disabled={!canScrollLeft}
-            >
-              <ChevronLeft size={20} strokeWidth={2} />
-            </button>
-            <button
-              className="pd-arrow-btn"
-              aria-label="Next"
-              onClick={() => scrollSimilar("right")}
-              disabled={!canScrollRight}
-            >
-              <ChevronRight size={20} strokeWidth={2} />
-            </button>
-          </div>
-        </div>
+      {/* Style Inspiration Section */}
+      {galleryImages.length >= 2 && (
+        <StyleInspiration
+          images={galleryImages}
+          productName={activeProduct?.name || "Product"}
+        />
+      )}
 
-        <div ref={similarGridRef} className="pd-similar-grid">
-          {similarProducts.map((item) => (
-            <ProductCard
-              key={item.productId || item._id || item.id}
-              product={item}
-            />
-          ))}
-        </div>
-      </section>
+      {/* Similar Products Section */}
+      {similarProducts.length > 0 && (
+        <section className="pd-similar">
+          <div className="pd-similar-header">
+            <h2 className="pd-similar-title">You May Also Like</h2>
+            <div className="pd-similar-controls">
+              <Link to={`/shop/${displayCategory}`} className="pd-view-all">
+                View all
+              </Link>
+              <button
+                className="pd-arrow-btn"
+                aria-label="Previous"
+                onClick={() => scrollSimilar("left")}
+                disabled={!canScrollLeft}
+              >
+                <ChevronLeft size={20} strokeWidth={2} />
+              </button>
+              <button
+                className="pd-arrow-btn"
+                aria-label="Next"
+                onClick={() => scrollSimilar("right")}
+                disabled={!canScrollRight}
+              >
+                <ChevronRight size={20} strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+
+          <div ref={similarGridRef} className="pd-similar-grid">
+            {similarProducts.map((item) => (
+              <ProductCard
+                key={item.productId || item._id || item.id}
+                product={item}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Lightbox Modal */}
       {lightboxOpen && (
@@ -817,6 +843,24 @@ const ProductDetail = () => {
           onClose={() => setLightboxOpen(false)}
         />
       )}
+
+      {/* Size Guide Modal */}
+      <SizeGuideModal
+        isOpen={isSizeGuideOpen}
+        onClose={() => setIsSizeGuideOpen(false)}
+      />
+
+      {/* Sticky Purchase Bar */}
+      <StickyPurchaseBar
+        product={product}
+        thumbnail={galleryImages[0] || ""}
+        title={activeProduct?.name || ""}
+        selectedVariantSummary={[selectedColor, selectedSize].filter(Boolean).join(" · ")}
+        price={payPrice}
+        disabled={!isProductInStock}
+        onAddToCart={handleAddToCart}
+        visible={stickyVisible}
+      />
     </div>
   );
 };

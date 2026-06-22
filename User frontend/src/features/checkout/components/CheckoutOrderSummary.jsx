@@ -10,55 +10,90 @@ import {
   Trash2,
   Calendar,
 } from "lucide-react";
+import { Button } from "@/shared/ui";
 import OptimizedImage from "@/shared/components/ui/OptimizedImage";
 import { formatPrice } from "../../../utils/pricing";
 
 export default function CheckoutOrderSummary({
   cartItems,
   cartSubtotal,
-  shippingMethod,
   shippingCost,
   tax,
   total,
   updateQuantity,
   removeFromCart,
   discount = 0,
-  giftCardDiscount = 0,
   couponCode,
-  giftCardCode,
   applyCoupon,
   removeCoupon,
-  applyGiftcard,
-  removeGiftcard,
-  isApplyingCoupon,
-  isRemovingCoupon,
-  isApplyingGiftcard,
-  isRemovingGiftcard,
+  appliedGiftCard,
+  giftCardDiscount = 0,
+  applyGiftCard,
+  removeGiftCard,
 }) {
   const [couponInput, setCouponInput] = useState("");
-  const [giftCardInput, setGiftCardInput] = useState("");
   const [couponError, setCouponError] = useState("");
-  const [giftCardError, setGiftCardError] = useState("");
+  const [couponSuccess, setCouponSuccess] = useState("");
+  const [applying, setApplying] = useState(false);
 
-  const handleApplyCoupon = async (e) => {
+  const [giftCardInput, setGiftCardInput] = useState("");
+  const [giftCardError, setGiftCardError] = useState("");
+  const [giftCardSuccess, setGiftCardSuccess] = useState("");
+  const [applyingGiftCard, setApplyingGiftCard] = useState(false);
+
+  const handleApplyGiftCard = async (e) => {
     e.preventDefault();
-    setCouponError("");
+    if (!giftCardInput.trim()) return;
+    setGiftCardError("");
+    setGiftCardSuccess("");
+    setApplyingGiftCard(true);
     try {
-      await applyCoupon(couponInput);
-      setCouponInput("");
+      const card = await applyGiftCard(giftCardInput.trim());
+      setGiftCardSuccess(`Gift card applied! Value: ${formatPrice(card.giftCardValue)}`);
+      setGiftCardInput("");
     } catch (err) {
-      setCouponError(err.message || "Invalid coupon");
+      setGiftCardError(err.message || "Failed to apply gift card.");
+    } finally {
+      setApplyingGiftCard(false);
     }
   };
 
-  const handleApplyGiftcard = async (e) => {
-    e.preventDefault();
+  const handleRemoveGiftCard = async () => {
     setGiftCardError("");
+    setGiftCardSuccess("");
     try {
-      await applyGiftcard(giftCardInput);
-      setGiftCardInput("");
+      await removeGiftCard();
+      setGiftCardSuccess("Gift card removed.");
+    } catch {
+      setGiftCardError("Failed to remove gift card.");
+    }
+  };
+
+  const handleApply = async (e) => {
+    e.preventDefault();
+    if (!couponInput.trim()) return;
+    setCouponError("");
+    setCouponSuccess("");
+    setApplying(true);
+    try {
+      await applyCoupon(couponInput.trim());
+      setCouponSuccess("Coupon applied successfully!");
+      setCouponInput("");
     } catch (err) {
-      setGiftCardError(err.message || "Invalid gift card");
+      setCouponError(err.message || "Failed to apply coupon.");
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    setCouponError("");
+    setCouponSuccess("");
+    try {
+      await removeCoupon();
+      setCouponSuccess("Coupon removed.");
+    } catch {
+      setCouponError("Failed to remove coupon.");
     }
   };
 
@@ -71,7 +106,7 @@ export default function CheckoutOrderSummary({
     maxDelivery.setDate(today.getDate() + 7);
 
     const options = { month: "short", day: "numeric" };
-    return `${minDelivery.toLocaleDateString("en-US", options)} – ${maxDelivery.toLocaleDateString("en-US", options)}`;
+    return `${minDelivery.toLocaleDateString("en-IN", options)} – ${maxDelivery.toLocaleDateString("en-IN", options)}`;
   };
 
   return (
@@ -130,8 +165,9 @@ export default function CheckoutOrderSummary({
                   >
                     <Plus size={12} />
                   </button>
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    icon={<Trash2 size={12} />}
                     className="checkout-remove-btn"
                     onClick={() =>
                       removeFromCart({
@@ -142,9 +178,7 @@ export default function CheckoutOrderSummary({
                       })
                     }
                     aria-label="Remove item"
-                  >
-                    <Trash2 size={12} />
-                  </button>
+                  />
                 </div>
               </div>
               <div className="checkout-item-price">
@@ -168,84 +202,66 @@ export default function CheckoutOrderSummary({
 
         <div className="checkout-divider"></div>
 
-        {/* PROMO CODES */}
-        <div className="checkout-promo-section">
-          {/* Coupon */}
-          <div className="promo-block" style={{ marginBottom: "15px" }}>
-            <h4 style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600", color: "var(--ds-color-secondary, #4a4a4a)" }}>Discount Coupon</h4>
-            {couponCode ? (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "6px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#166534", fontWeight: "500", fontSize: "14px" }}>
-                  <ShieldCheck size={16} />
-                  <span>{couponCode}</span>
-                </div>
-                <button 
-                  onClick={() => removeCoupon()}
-                  disabled={isRemovingCoupon}
-                  style={{ background: "none", border: "none", color: "#991b1b", cursor: "pointer", fontSize: "13px", fontWeight: "500" }}
-                >
-                  {isRemovingCoupon ? "Removing..." : "Remove"}
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleApplyCoupon} style={{ display: "flex", gap: "8px" }}>
-                <input 
-                  type="text" 
-                  value={couponInput}
-                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                  placeholder="Enter code" 
-                  style={{ flex: 1, padding: "10px 12px", border: "1px solid #e5e5e5", borderRadius: "6px", fontSize: "14px", outline: "none" }}
-                />
-                <button 
-                  type="submit"
-                  disabled={!couponInput || isApplyingCoupon}
-                  style={{ padding: "0 16px", backgroundColor: "var(--ds-color-primary, #000)", color: "#fff", border: "none", borderRadius: "6px", fontWeight: "500", cursor: "pointer", opacity: (!couponInput || isApplyingCoupon) ? 0.5 : 1 }}
-                >
-                  {isApplyingCoupon ? "Applying..." : "Apply"}
-                </button>
-              </form>
-            )}
-            {couponError && <p style={{ color: "#dc2626", fontSize: "12px", marginTop: "4px" }}>{couponError}</p>}
-          </div>
-
-          {/* Gift Card */}
-          <div className="promo-block">
-            <h4 style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600", color: "var(--ds-color-secondary, #4a4a4a)" }}>Gift Card</h4>
-            {giftCardCode ? (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "6px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#166534", fontWeight: "500", fontSize: "14px" }}>
-                  <ShieldCheck size={16} />
-                  <span>{giftCardCode}</span>
-                </div>
-                <button 
-                  onClick={() => removeGiftcard()}
-                  disabled={isRemovingGiftcard}
-                  style={{ background: "none", border: "none", color: "#991b1b", cursor: "pointer", fontSize: "13px", fontWeight: "500" }}
-                >
-                  {isRemovingGiftcard ? "Removing..." : "Remove"}
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleApplyGiftcard} style={{ display: "flex", gap: "8px" }}>
-                <input 
-                  type="text" 
-                  value={giftCardInput}
-                  onChange={(e) => setGiftCardInput(e.target.value.toUpperCase())}
-                  placeholder="Enter gift card" 
-                  style={{ flex: 1, padding: "10px 12px", border: "1px solid #e5e5e5", borderRadius: "6px", fontSize: "14px", outline: "none" }}
-                />
-                <button 
-                  type="submit"
-                  disabled={!giftCardInput || isApplyingGiftcard}
-                  style={{ padding: "0 16px", backgroundColor: "var(--ds-color-primary, #000)", color: "#fff", border: "none", borderRadius: "6px", fontWeight: "500", cursor: "pointer", opacity: (!giftCardInput || isApplyingGiftcard) ? 0.5 : 1 }}
-                >
-                  {isApplyingGiftcard ? "Applying..." : "Apply"}
-                </button>
-              </form>
-            )}
-            {giftCardError && <p style={{ color: "#dc2626", fontSize: "12px", marginTop: "4px" }}>{giftCardError}</p>}
-          </div>
+        {/* Coupon Code Input Form */}
+        <div className="checkout-coupon-container">
+          <p className="checkout-coupon-title">Promo Code</p>
+          {couponCode ? (
+            <div className="checkout-coupon-applied">
+              <span className="coupon-code-badge">{couponCode}</span>
+              <Button variant="ghost" onClick={handleRemove}>
+                Remove
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleApply} className="checkout-coupon-form">
+              <input
+                type="text"
+                placeholder="Enter promo code"
+                value={couponInput}
+                onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                className="checkout-coupon-input"
+                disabled={applying}
+              />
+              <Button variant="primary" type="submit" disabled={applying || !couponInput.trim()}>
+                {applying ? "..." : "Apply"}
+              </Button>
+            </form>
+          )}
+          {couponError && <p className="coupon-message error">{couponError}</p>}
+          {couponSuccess && <p className="coupon-message success">{couponSuccess}</p>}
         </div>
+
+        {/* Gift Card Input Form */}
+        <div className="checkout-coupon-container" style={{ marginTop: "1rem" }}>
+          <p className="checkout-coupon-title">Gift Card</p>
+          {appliedGiftCard ? (
+            <div className="checkout-coupon-applied">
+              <span className="coupon-code-badge">
+                {appliedGiftCard.code} ({formatPrice(appliedGiftCard.giftCardValue)})
+              </span>
+              <Button variant="ghost" onClick={handleRemoveGiftCard}>
+                Remove
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleApplyGiftCard} className="checkout-coupon-form">
+              <input
+                type="text"
+                placeholder="Enter gift card code"
+                value={giftCardInput}
+                onChange={(e) => setGiftCardInput(e.target.value.toUpperCase())}
+                className="checkout-coupon-input"
+                disabled={applyingGiftCard}
+              />
+              <Button variant="primary" type="submit" disabled={applyingGiftCard || !giftCardInput.trim()}>
+                {applyingGiftCard ? "..." : "Apply"}
+              </Button>
+            </form>
+          )}
+          {giftCardError && <p className="coupon-message error">{giftCardError}</p>}
+          {giftCardSuccess && <p className="coupon-message success">{giftCardSuccess}</p>}
+        </div>
+
 
         <div className="checkout-divider"></div>
 
@@ -270,6 +286,7 @@ export default function CheckoutOrderSummary({
               </span>
             </div>
           )}
+
           <div className="checkout-total-row">
             <span>Shipping</span>
             <span>

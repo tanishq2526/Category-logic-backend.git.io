@@ -5,11 +5,13 @@
   justify-content: center;
   gap: var(--ds-space-2);
   border: 1px solid transparent;
-  border-radius: var(--ds-radius-md);
+  border-radius: 0;
   padding: 0 var(--ds-space-4);
-  font-family: var(--ds-font-sans);
-  font-size: var(--ds-text-sm);
-  font-weight: 700;
+  font-family: 'Jost', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
   line-height: 1;
   text-decoration: none;
   white-space: nowrap;
@@ -22,7 +24,7 @@
 }
 
 .ds-button:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .ds-button:disabled {
@@ -32,13 +34,13 @@
 
 .ds-button--primary {
   background: var(--ds-color-brand);
-  color: #fff;
-  box-shadow: var(--ds-shadow-xs);
+  color: var(--ds-color-canvas);
+  box-shadow: none;
 }
 
 .ds-button--primary:hover:not(:disabled) {
   background: var(--ds-color-brand-hover);
-  box-shadow: var(--ds-shadow-sm);
+  box-shadow: none;
 }
 
 .ds-button--secondary {
@@ -74,6 +76,53 @@
   padding: 0;
 }
 
+.ds-button--accent {
+  background: var(--ds-color-accent, var(--color-gold, #C9A96E));
+  color: #fff;
+}
+
+.ds-button--accent:hover:not(:disabled) {
+  background: var(--ds-color-accent-hover, var(--color-light-gold, #D4B88C));
+}
+
+.ds-button--outline {
+  background: transparent;
+  border-color: var(--ds-color-border-strong, var(--color-border, #D1D1D1));
+  color: var(--ds-color-text, var(--color-dark, #1A1A1A));
+}
+
+.ds-button--outline:hover:not(:disabled) {
+  border-color: var(--ds-color-brand, var(--color-gold, #C9A96E));
+  color: var(--ds-color-brand, var(--color-gold, #C9A96E));
+}
+
+.ds-button--loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.ds-button--loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: ds-spin 0.6s linear infinite;
+}
+
+@keyframes ds-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .ds-field {
   display: grid;
   gap: var(--ds-space-2);
@@ -105,7 +154,7 @@
 .ds-input:focus,
 .ds-select:focus {
   border-color: var(--ds-color-brand);
-  box-shadow: 0 0 0 4px rgba(31, 42, 68, 0.12);
+  box-shadow: none;
   outline: none;
 }
 

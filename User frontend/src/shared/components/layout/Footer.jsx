@@ -88,22 +88,22 @@ const Footer = () => {
         <div className="footer-column">
           <h3 className="footer-column-title">SHOP</h3>
           <ul className="footer-links">
-            {categories && categories.length > 0 ? (
-              categories.slice(0, 5).map((cat) => (
-                <li key={cat._id}>
-                  <Link to={`/shop/${cat.slug}`}>{cat.name}</Link>
-                </li>
-              ))
-            ) : (
-              <li>
-                <Link to="/shop">Shop All</Link>
-              </li>
-            )}
             <li>
-              <a href="#collections">New Arrivals</a>
+              <Link to="/shop">Shop All</Link>
+            </li>
+            {categories && categories.slice(0, 4).map((cat) => {
+              const slug = cat.slug || cat.name?.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || cat._id;
+              return (
+                <li key={cat._id}>
+                  <Link to={`/shop/${slug}`}>{cat.name}</Link>
+                </li>
+              );
+            })}
+            <li>
+              <Link to="/shop?sort=newest">New Arrivals</Link>
             </li>
             <li>
-              <a href="#bestsellers">Best Sellers</a>
+              <Link to="/shop?sort=rating">Best Sellers</Link>
             </li>
           </ul>
         </div>
@@ -112,17 +112,16 @@ const Footer = () => {
           <h3 className="footer-column-title">COMPANY</h3>
           <ul className="footer-links">
             <li>
-              <a href="#about">About</a>
-            </li>
-
-            <li>
-              <a href="#careers">Careers</a>
+              <Link to="/about">About Us</Link>
             </li>
             <li>
-              <a href="#sustainability">Sustainability</a>
+              <Link to="/careers">Careers</Link>
             </li>
             <li>
-              <a href="#contact">Contact</a>
+              <Link to="/contact">Contact Us</Link>
+            </li>
+            <li>
+              <Link to="/terms">Terms & Conditions</Link>
             </li>
           </ul>
         </div>
@@ -131,19 +130,19 @@ const Footer = () => {
           <h3 className="footer-column-title">SUPPORT</h3>
           <ul className="footer-links">
             <li>
-              <a href="#help">Help Center</a>
+              <Link to="/help">Help Center</Link>
             </li>
             <li>
-              <a href="#shipping">Shipping & Returns</a>
+              <Link to="/shipping-policy">Shipping Policy</Link>
             </li>
             <li>
-              <a href="#tracking">Order Tracking</a>
+              <Link to="/return-policy">Return Policy</Link>
             </li>
             <li>
-              <a href="#faq">FAQs</a>
+              <Link to="/faq">FAQs</Link>
             </li>
             <li>
-              <a href="#privacy">Privacy Policy</a>
+              <Link to="/privacy">Privacy Policy</Link>
             </li>
           </ul>
         </div>

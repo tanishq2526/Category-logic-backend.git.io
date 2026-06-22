@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import CategoryCard from "@/features/products/components/CategoryCard";
 import "../../styles/Category.css";
@@ -6,36 +5,53 @@ import { useCategories } from "@/features/products/hooks/useCategories";
 import { useSubCategories } from "@/features/products/hooks/useSubCategories";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { IMAGE_FALLBACK } from "../../constants/images";
-import { API_BASE_URL } from "@/shared/utils/api";
+import { resolveProductImage } from "@/shared/utils/api";
+import ProductCardSkeleton from "@/features/products/components/ProductCardSkeleton";
 
 const resolveImage = (path) => {
-  if (!path) return IMAGE_FALLBACK;
-  if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) {
-    return path;
-  }
-  return `${API_BASE_URL}${path}`;
+  return resolveProductImage(path) || IMAGE_FALLBACK;
 };
 
 const CategoryPage = () => {
   const { category: categorySlug } = useParams();
-  const { categories } = useCategories();
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const { categories, loading: categoriesLoading } = useCategories();
+  
+  // Derive selected category directly during render to prevent state-sync layout flash
+  const selectedCategory = categories.find(
+    (cat) =>
+      cat.slug === categorySlug || cat.slug === categorySlug?.toLowerCase()
+  );
+  
   const { subcategories } = useSubCategories(selectedCategory?._id);
   const { products, loading } = useProducts({
     categoryId: selectedCategory?._id,
   });
 
-  // Find the selected category by slug
-  useEffect(() => {
-    if (categories.length > 0 && categorySlug) {
-      const found = categories.find(
-        (cat) =>
-          cat.slug === categorySlug || cat.slug === categorySlug.toLowerCase(),
-      );
-      setSelectedCategory(found || null);
-    }
-  }, [categorySlug, categories]);
+  if (categoriesLoading || categories.length === 0) {
+    return (
+      <div className="category-page">
+        <header className="cat-hero">
+          <div className="cat-hero-inner">
+            <div
+              className="ds-skeleton"
+              style={{
+                height: "48px",
+                width: "320px",
+                margin: "0 auto",
+              }}
+            />
+          </div>
+        </header>
 
+        <section className="cat-grid">
+          {[...Array(6)].map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
+        </section>
+      </div>
+    );
+  }
+  
   if (!selectedCategory) {
     return (
       <div className="category-page">
