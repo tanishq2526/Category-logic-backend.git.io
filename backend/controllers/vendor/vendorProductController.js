@@ -37,14 +37,25 @@ export const getProducts = async (req, res) => {
       filter.isActive = req.query.isActive === "true";
     }
 
+    const limit = parseInt(req.query.limit) || 20;
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+
+    const total = await VendorProduct.countDocuments(filter);
+
     const products = await VendorProduct.find(filter)
       .populate("category", "name slug")
       .populate("subCategory", "name slug")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     return res.status(200).json({
       success: true,
       count: products.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
       data: products,
     });
   } catch (error) {
@@ -105,11 +116,8 @@ export const uploadProductImage = async (req, res) => {
         .json({ success: false, message: "No image file provided" });
     }
 
-    // Build the public URL served by the static-files middleware.
-    // Assumes Express serves /uploads at the root:
-    //   app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-    // Adjust the path prefix below if your setup differs.
-    const url = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    // With multer-storage-cloudinary, the public URL is stored in req.file.path
+    const url = req.file.path;
 
     return res.status(200).json({
       success: true,
@@ -378,7 +386,9 @@ export const deleteProduct = async (req, res) => {
         .json({ success: false, message: "Product not found" });
     }
 
-    await product.deleteOne();
+    product.isDeleted = true;
+    product.deletedAt = new Date();
+    await product.save();
 
     return res.status(200).json({
       success: true,

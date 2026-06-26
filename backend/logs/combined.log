@@ -1,0 +1,45 @@
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-23 17:19:37"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-23 17:19:56"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-23 17:19:57"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-23 17:20:14"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-23 17:20:14"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-23 17:20:59"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-23 17:20:59"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-23 17:33:12"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-23 17:33:12"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-23 17:33:35"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-23 17:33:36"}
+{"error":"Error: CORS blocked for origin: http://evil.com\n    at origin (file:///T:/Category/backend/server.js:212:23)\n    at T:\\Category\\backend\\node_modules\\cors\\lib\\index.js:219:13\n    at optionsCallback (T:\\Category\\backend\\node_modules\\cors\\lib\\index.js:199:9)\n    at corsMiddleware (T:\\Category\\backend\\node_modules\\cors\\lib\\index.js:204:7)\n    at Layer.handleRequest (T:\\Category\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at trimPrefix (T:\\Category\\backend\\node_modules\\router\\index.js:342:13)\n    at T:\\Category\\backend\\node_modules\\router\\index.js:297:9\n    at processParams (T:\\Category\\backend\\node_modules\\router\\index.js:582:12)\n    at next (T:\\Category\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///T:/Category/backend/server.js:151:3","level":"error","message":"GLOBAL ERROR: CORS blocked for origin: http://evil.com","method":"GET","timestamp":"2026-06-23 17:34:10","url":"/api/products/public/all"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-23 17:34:34"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-23 17:34:34"}
+{"error":"Error: CORS blocked for origin: http://evil.com\n    at origin (file:///T:/Category/backend/server.js:212:23)\n    at T:\\Category\\backend\\node_modules\\cors\\lib\\index.js:219:13\n    at optionsCallback (T:\\Category\\backend\\node_modules\\cors\\lib\\index.js:199:9)\n    at corsMiddleware (T:\\Category\\backend\\node_modules\\cors\\lib\\index.js:204:7)\n    at Layer.handleRequest (T:\\Category\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at trimPrefix (T:\\Category\\backend\\node_modules\\router\\index.js:342:13)\n    at T:\\Category\\backend\\node_modules\\router\\index.js:297:9\n    at processParams (T:\\Category\\backend\\node_modules\\router\\index.js:582:12)\n    at next (T:\\Category\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///T:/Category/backend/server.js:151:3","level":"error","message":"GLOBAL ERROR: CORS blocked for origin: http://evil.com","method":"GET","timestamp":"2026-06-23 17:34:43","url":"/api/product/public/all"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-24 11:22:41"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-24 11:22:42"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-24 11:35:12"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-24 11:35:12"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-24 11:35:25"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-24 11:35:26"}
+{"error":"SyntaxError: Unexpected token '/', \"/api/orders/{id}/pay\" is not valid JSON\n    at JSON.parse (<anonymous>)\n    at createStrictSyntaxError (T:\\Category\\backend\\node_modules\\body-parser\\lib\\types\\json.js:109:10)\n    at parse (T:\\Category\\backend\\node_modules\\body-parser\\lib\\types\\json.js:66:15)\n    at T:\\Category\\backend\\node_modules\\body-parser\\lib\\read.js:162:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)\n    at invokeCallback (T:\\Category\\backend\\node_modules\\raw-body\\index.js:238:16)\n    at done (T:\\Category\\backend\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (T:\\Category\\backend\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:518:28)\n    at endReadableNT (node:internal/streams/readable:1698:12)","level":"error","message":"GLOBAL ERROR: Unexpected token '/', \"/api/orders/{id}/pay\" is not valid JSON","method":"PUT","timestamp":"2026-06-24 12:09:05","url":"/api/orders/6a3a373a7aa53df024f98b90/pay"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-24 15:59:20"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-24 15:59:21"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-24 17:37:20"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-24 17:37:21"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-24 17:37:29"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-24 17:37:29"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-24 17:59:57"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-24 17:59:58"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-26 11:21:59"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-26 11:22:00"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-26 15:25:49"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-26 15:25:50"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-26 15:29:49"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-26 15:29:49"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-26 16:28:30"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-26 16:28:30"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-26 17:26:40"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-26 17:26:40"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-26 17:47:32"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-26 17:47:37"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-26 17:47:38"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-26 17:47:52"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-26 17:47:53"}
