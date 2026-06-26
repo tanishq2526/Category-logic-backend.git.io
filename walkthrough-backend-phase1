@@ -1,0 +1,36 @@
+# Backend Fixes — Phase 1 Report
+
+I have successfully completed **Phase 1 (Critical Fixes)** of the QA audit plan. The backend is now significantly more secure and robust.
+
+Here is a detailed breakdown of the changes implemented in this phase:
+
+### 1. NoSQL Injection & XSS Protection
+- **Installed Packages:** Added `helmet` and `express-mongo-sanitize` to the project.
+- **Global Middleware:** Configured [server.js](file:///t:/Category/backend/server.js) to apply these security headers and payload sanitization globally, protecting all `/api/*` routes from common NoSQL injection patterns and XSS attacks.
+
+### 2. Input Validation Middleware
+- **Installed Packages:** Added `zod` for robust schema validation.
+- **Validation Middleware:** Created a generic validation middleware at [validate.js](file:///t:/Category/backend/middleware/validate.js) that intercepts requests, validates the body against a Zod schema, and returns a structured `400 Bad Request` if invalid.
+- **Zod Schemas:** Defined strict schemas in [schemas.js](file:///t:/Category/backend/middleware/schemas.js) for critical endpoints:
+  - `registerSchema`, `loginSchema`, `registerVendorSchema`, `registerAdminSchema`
+  - `productSchema`
+  - `orderSchema`
+  - `wishlistSchema`
+  - `couponSchema`
+- **Route Application:** Applied the validation middleware to the corresponding `POST` and `PUT` routes across `auth.js`, `order.js`, `wishlist.js`, `vendorProductRoutes.js`, and `vendorCouponRoutes.js`.
+
+### 3. Removed Manual Mark-As-Paid Endpoint
+- **Security Fix:** Completely removed the highly insecure `PUT /api/orders/:id/pay` endpoint from [order.js](file:///t:/Category/backend/routes/order.js). Payment status updates are now strictly forced to rely entirely on the secure Razorpay webhook which cryptographically verifies the payment signature.
+
+### 4. Inventory Enforcement & Transactions
+- **Model Update:** Renamed `stock` to `stock_qty` with strict minimum constraint (`min: 0`) in both [Product.js](file:///t:/Category/backend/models/Product.js) and [vendorProduct.js](file:///t:/Category/backend/models/vendor/vendorProduct.js).
+- **Cart Validation:** Updated [cart.js](file:///t:/Category/backend/routes/cart.js) to check the requested quantity against the authoritative `stock_qty` in the database, preventing users from adding out-of-stock items or exceeding available inventory.
+- **Atomic Transactions:** Modified [order.js](file:///t:/Category/backend/routes/order.js) to execute order placement within a MongoDB Transaction. It now atomically decrements `stock_qty` ensuring no overselling can occur during concurrent checkouts. Cancellation routes were similarly updated to atomically restore the stock.
+
+---
+
+> [!IMPORTANT]
+> **Next Steps:**
+> Please review these Phase 1 changes in your codebase. Run `npm run dev` and test the endpoints (e.g., trying to register with invalid data should now return a 400 error). 
+> 
+> Let me know if you are satisfied with Phase 1, and I can proceed to implement Phase 2 (High Severity Fixes) which includes JWT Refresh Tokens, File Upload security, Rate Limiting, and Soft Deletes!

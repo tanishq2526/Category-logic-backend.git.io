@@ -1,0 +1,68 @@
+# Backend Fixes — Phase 1 Report
+
+I have successfully completed **Phase 1 (Critical Fixes)** of the QA audit plan. The backend is now significantly more secure and robust.
+
+Here is a detailed breakdown of the changes implemented in this phase:
+
+### 1. NoSQL Injection & XSS Protection
+- **Installed Packages:** Added `helmet` and `express-mongo-sanitize` to the project.
+- **Global Middleware:** Configured [server.js](file:///t:/Category/backend/server.js) to apply these security headers and payload sanitization globally, protecting all `/api/*` routes from common NoSQL injection patterns and XSS attacks.
+
+### 2. Input Validation Middleware
+- **Installed Packages:** Added `zod` for robust schema validation.
+- **Validation Middleware:** Created a generic validation middleware at [validate.js](file:///t:/Category/backend/middleware/validate.js) that intercepts requests, validates the body against a Zod schema, and returns a structured `400 Bad Request` if invalid.
+- **Zod Schemas:** Defined strict schemas in [schemas.js](file:///t:/Category/backend/middleware/schemas.js) for critical endpoints:
+  - `registerSchema`, `loginSchema`, `registerVendorSchema`, `registerAdminSchema`
+  - `productSchema`
+  - `orderSchema`
+  - `wishlistSchema`
+  - `couponSchema`
+- **Route Application:** Applied the validation middleware to the corresponding `POST` and `PUT` routes across `auth.js`, `order.js`, `wishlist.js`, `vendorProductRoutes.js`, and `vendorCouponRoutes.js`.
+
+### 3. Removed Manual Mark-As-Paid Endpoint
+- **Security Fix:** Completely removed the highly insecure `PUT /api/orders/:id/pay` endpoint from [order.js](file:///t:/Category/backend/routes/order.js). Payment status updates are now strictly forced to rely entirely on the secure Razorpay webhook which cryptographically verifies the payment signature.
+
+### 4. Inventory Enforcement & Transactions
+- **Model Update:** Renamed `stock` to `stock_qty` with strict minimum constraint (`min: 0`) in both [Product.js](file:///t:/Category/backend/models/Product.js) and [vendorProduct.js](file:///t:/Category/backend/models/vendor/vendorProduct.js).
+- **Cart Validation:** Updated [cart.js](file:///t:/Category/backend/routes/cart.js) to check the requested quantity against the authoritative `stock_qty` in the database, preventing users from adding out-of-stock items or exceeding available inventory.
+- **Atomic Transactions:** Modified [order.js](file:///t:/Category/backend/routes/order.js) to execute order placement within a MongoDB Transaction. It now atomically decrements `stock_qty` ensuring no overselling can occur during concurrent checkouts. Cancellation routes were similarly updated to atomically restore the stock.
+
+---
+
+> [!IMPORTANT]
+> **Next Steps:**
+> Please review these Phase 1 changes in your codebase. Run `npm run dev` and test the endpoints (e.g., trying to register with invalid data should now return a 400 error). 
+> 
+> Let me know if you are satisfied with Phase 1, and I can proceed to implement Phase 2 (High Severity Fixes) which includes:
+
+### 3. JWT Refresh Tokens & Logout Fixes
+- Added `POST /api/auth/refresh` for rotating access tokens using a 7-day `refreshToken` cookie.
+- Decreased `token` lifespan to 15 minutes for better security.
+- Updated `POST /api/auth/logout` to clear both cookies without requiring Redis.
+
+### 4. Cloudinary & Secure File Uploads
+- Integrated `cloudinary` and `multer-storage-cloudinary` to directly upload product and profile images to the cloud.
+- Replaced the local `uploads/` directory static route and updated file handlers to validate mime types and file sizes (5MB limit).
+- Updated controllers (`vendorProductController`, etc.) to parse and save the secure cloud URL instead of local paths.
+
+### 5. API Rate Limiting
+- Added `express-rate-limit` middleware globally to `/api/` paths with a limit of 100 requests per minute to prevent abuse.
+- Set stricter limits on `/register` and `/login` (5 requests per minute).
+
+### 6. Product Existence Checks
+- Validated `product.isDeleted` status inside the `wishlist` and `cart` controllers. Products that are soft-deleted or completely removed will return a `404 Product not found`.
+
+### 7. Commission Audit Logs
+- Created a dedicated `AuditLog` model to track commission rate changes applied by administrators.
+- Logged changes natively in `adminVendorController` indicating `adminId`, `targetId`, and the before/after commission states.
+- Implemented `GET /api/admin/audit-logs` (mounted at `/api/admin/audit-logs`) to retrieve recent administrative actions.
+
+### 8. Soft Deletes
+- Added `isDeleted` and `deletedAt` flags to `Product`, `VendorProduct`, and `User` models.
+- Modified native MongoDB deletion operations (`deleteOne`, `findByIdAndDelete`) in controllers to use `findByIdAndUpdate` for soft deletions.
+- Applied Mongoose `.pre(/^find/)` middleware on these schemas to automatically filter out soft-deleted documents from all queries.
+
+### 9. Email Notification System
+- Configured a basic SMTP `nodemailer` service inside `services/emailService.js` to dispatch emails asynchronously (without needing a Redis message queue).
+- Connected a "Welcome Email" sequence on new user registration inside `auth.js`.
+- Expanded Auth routes to include `/forgot-password` and `/reset-password` capabilities.

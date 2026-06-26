@@ -5,11 +5,12 @@ import {
 } from "lucide-react";
 import API from "../../utils/api";
 import UnifiedImageUploader from "../../components/ImageUploader";
+import Pagination from "../../components/Pagination";
 import "../../styles/vendor.css";
 
 const PAGE_SIZE = 10;
 const EMPTY_FORM = {
-  name: "", description: "", price: "", salePrice: "", stock: "", category: "", subCategory: "", isActive: true,
+  name: "", description: "", price: "", salePrice: "", stock_qty: "", category: "", subCategory: "", isActive: true,
 };
 const TOTAL_SLOTS = 5;
 
@@ -20,12 +21,12 @@ const StatusBadge = ({ isActive }) => (
   </span>
 );
 
-const StockBadge = ({ stock }) => {
-  const low = stock <= 5;
-  const out = stock === 0;
+const StockBadge = ({ stock_qty }) => {
+  const low = stock_qty <= 5;
+  const out = stock_qty === 0;
   return (
     <span className={`badge ${out ? "badge-error" : low ? "badge-warning" : "badge-info"}`}>
-      {stock} {out ? "— Out" : low ? "— Low" : "units"}
+      {stock_qty} {out ? "— Out" : low ? "— Low" : "units"}
     </span>
   );
 };
@@ -66,6 +67,7 @@ function ImageUploader({ vendorSlug, slots, onChange }) {
           label={idx === 0 ? "Main thumbnail" : `Carousel ${idx}`}
           aspectRatio="1/1"
           style={{ height: "100%", margin: 0 }}
+          uploadUrl={vendorSlug ? `/api/vendor/${vendorSlug}/products/upload-image` : undefined}
         />
       </div>
     );
@@ -103,24 +105,40 @@ function ProductModal({ mode, initial, initialImages, categories, vendorSlug, on
     return result;
   };
   const [imageSlots, setImageSlots] = useState(buildInitialSlots);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const filteredSubCats = categories.find((c) => c._id === form.category)?.subCategories || [];
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   
-  const submit = () => {
+  const submit = async () => {
+    setFieldErrors({});
     if (!form.name.trim()) return setErr("Product name is required.");
     if (form.price === "" || isNaN(Number(form.price)) || Number(form.price) < 0) return setErr("A valid price (≥ 0) is required.");
     if (form.salePrice !== "" && Number(form.salePrice) >= Number(form.price)) return setErr("Sale price must be less than the regular price.");
+    if (form.stock_qty !== "" && Number(form.stock_qty) < 0) return setErr("Stock quantity cannot be negative.");
     if (imageSlots.some((s) => s.uploading)) return setErr("Please wait for all uploads to finish before saving.");
     setErr("");
 
     const images = imageSlots.map((s) => s.url).filter(Boolean);
-    onSave({
+    const payload = {
       name: form.name.trim(), description: form.description.trim(), price: Number(form.price),
       salePrice: form.salePrice !== "" ? Number(form.salePrice) : null,
-      stock: form.stock !== "" ? Number(form.stock) : 0, category: form.category || null,
+      stock_qty: form.stock_qty !== "" ? Number(form.stock_qty) : 0, category: form.category || null,
       subCategory: form.subCategory || null, isActive: form.isActive, images,
-    });
+    };
+
+    try {
+      await onSave(payload);
+    } catch (err) {
+      if (err.data && err.data.errors) {
+        const errors = {};
+        err.data.errors.forEach(e => { errors[e.path[0]] = e.message; });
+        setFieldErrors(errors);
+        setErr("Please fix the validation errors below.");
+      } else {
+        setErr(err.message || "An error occurred.");
+      }
+    }
   };
 
   return (
@@ -135,24 +153,28 @@ function ProductModal({ mode, initial, initialImages, categories, vendorSlug, on
 
         <div className="form-group">
           <label>Product Name <span className="required">*</span></label>
-          <input type="text" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Premium Running Shoes" />
+          <input type="text" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Premium Running Shoes" className={fieldErrors.name ? "input-error" : ""} />
+          {fieldErrors.name && <div className="field-error">{fieldErrors.name}</div>}
         </div>
 
         <div className="form-row">
           <div className="form-group">
             <label>Price (₹) <span className="required">*</span></label>
-            <input type="number" min="0" step="0.01" value={form.price} onChange={(e) => set("price", e.target.value)} placeholder="0.00" />
+            <input type="number" min="0" step="0.01" value={form.price} onChange={(e) => set("price", e.target.value)} placeholder="0.00" className={fieldErrors.price ? "input-error" : ""} />
+            {fieldErrors.price && <div className="field-error">{fieldErrors.price}</div>}
           </div>
           <div className="form-group">
             <label>Sale Price (₹)</label>
-            <input type="number" min="0" step="0.01" value={form.salePrice} onChange={(e) => set("salePrice", e.target.value)} placeholder="Optional" />
+            <input type="number" min="0" step="0.01" value={form.salePrice} onChange={(e) => set("salePrice", e.target.value)} placeholder="Optional" className={fieldErrors.salePrice ? "input-error" : ""} />
+            {fieldErrors.salePrice && <div className="field-error">{fieldErrors.salePrice}</div>}
           </div>
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label>Stock (units)</label>
-            <input type="number" min="0" value={form.stock} onChange={(e) => set("stock", e.target.value)} placeholder="0" />
+            <label>Stock Quantity</label>
+            <input type="number" min="0" value={form.stock_qty} onChange={(e) => set("stock_qty", e.target.value)} placeholder="0" className={fieldErrors.stock_qty ? "input-error" : ""} />
+            {fieldErrors.stock_qty && <div className="field-error">{fieldErrors.stock_qty}</div>}
           </div>
         </div>
 
@@ -175,7 +197,8 @@ function ProductModal({ mode, initial, initialImages, categories, vendorSlug, on
 
         <div className="form-group">
           <label>Description</label>
-          <textarea value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Optional product description…" rows="3" />
+          <textarea value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Optional product description…" rows="3" className={fieldErrors.description ? "input-error" : ""} />
+          {fieldErrors.description && <div className="field-error">{fieldErrors.description}</div>}
         </div>
 
         <div className="card" style={{ padding: "16px", marginBottom: "16px", background: "var(--secondary-bg)" }}>
@@ -256,7 +279,7 @@ function VendorProducts() {
     if (sortBy === "name-desc") return (b.name || "").localeCompare(a.name || "");
     if (sortBy === "price-low") return (a.price || 0) - (b.price || 0);
     if (sortBy === "price-high") return (b.price || 0) - (a.price || 0);
-    if (sortBy === "stock-low") return (a.stock || 0) - (b.stock || 0);
+    if (sortBy === "stock-low") return (a.stock_qty || 0) - (b.stock_qty || 0);
     return 0; // newest
   });
 
@@ -267,15 +290,15 @@ function VendorProducts() {
   useEffect(() => { setPage(1); }, [search, filterCat, filterStatus, sortBy]);
 
   const activeCount = products.filter(p => p.isActive).length;
-  const outOfStock = products.filter(p => (p.stock || 0) === 0).length;
-  const totalValue = products.reduce((s, p) => s + (p.price || 0) * (p.stock || 0), 0);
+  const outOfStock = products.filter(p => (p.stock_qty || 0) === 0).length;
+  const totalValue = products.reduce((s, p) => s + (p.price || 0) * (p.stock_qty || 0), 0);
 
   const handleCreate = async (form) => {
     setSaving(true);
     try {
       await API(`/api/vendor/${vendorSlug}/products`, { method: "POST", body: JSON.stringify(form) });
       setModal(null); await loadProducts();
-    } catch (err) { alert(err.message); } finally { setSaving(false); }
+    } finally { setSaving(false); }
   };
 
   const handleUpdate = async (form) => {
@@ -283,7 +306,7 @@ function VendorProducts() {
     try {
       await API(`/api/vendor/${vendorSlug}/products/${modal.data._id}`, { method: "PUT", body: JSON.stringify(form) });
       setModal(null); await loadProducts();
-    } catch (err) { alert(err.message); } finally { setSaving(false); }
+    } finally { setSaving(false); }
   };
 
   const handleToggle = async (p) => {
@@ -429,7 +452,7 @@ function VendorProducts() {
                     <div style={{ fontWeight: 600 }}>₹{p.price}</div>
                     {p.salePrice && <div style={{ fontSize: "11px", color: "var(--success)" }}>Sale: ₹{p.salePrice}</div>}
                   </td>
-                  <td><StockBadge stock={p.stock || 0} /></td>
+                  <td><StockBadge stock_qty={p.stock_qty || 0} /></td>
                   <td><StatusBadge isActive={p.isActive} /></td>
                   <td>
                     <div style={{ display: "flex", gap: "8px" }}>
@@ -445,17 +468,7 @@ function VendorProducts() {
             </tbody>
           </table>
           
-          {totalPages > 1 && (
-            <div style={{ padding: "16px 20px", borderTop: "1px solid var(--border-color)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-                Showing <strong>{(safePage - 1) * PAGE_SIZE + 1}</strong> to <strong>{Math.min(safePage * PAGE_SIZE, sorted.length)}</strong> of <strong>{sorted.length}</strong> results
-              </div>
-              <div style={{ display: "flex", gap: "6px" }}>
-                <button className="btn btn-secondary btn-sm" disabled={safePage === 1} onClick={() => setPage(safePage - 1)}><ChevronLeft size={14} /></button>
-                <button className="btn btn-secondary btn-sm" disabled={safePage === totalPages} onClick={() => setPage(safePage + 1)}><ChevronRight size={14} /></button>
-              </div>
-            </div>
-          )}
+          <Pagination page={safePage} pages={totalPages} onPageChange={setPage} />
         </div>
       )}
     </div>

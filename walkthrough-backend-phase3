@@ -1,0 +1,41 @@
+# Phase 3 Implementation Walkthrough
+
+## Completed Tasks
+
+### 1. Standardized Pagination
+- Updated `routes/product.js` to parse `req.query.limit` and `req.query.page` for both admin and public product endpoints.
+- Adjusted `routes/order.js` to conform to the standard pagination payload and allow dynamic `limit` and `page`.
+- Updated `controllers/wishlistController.js` to use Mongoose `populate` options (`skip`, `limit`) to paginate `wishlist.products` locally.
+- Standardized `adminVendorController.js` and `vendorProductController.js` to use consistent `{ data, total, page, pages }` formats, defaulting to 20 items per page.
+
+### 2. Tightened CORS Configuration
+- Modified `server.js` to dynamically allow domains based on `NODE_ENV`.
+- In production, it only accepts origins defined in `process.env.FRONTEND_URL` or `process.env.CLIENT_URL`.
+- The insecure `if (!origin)` bypass is disabled in production to block uncontrolled non-browser requests (like cURL/Postman).
+
+### 3. Coupon Usage Restrictions
+- Added `maxUsesPerUser` directly into the `models/Coupon.js` schema with a default of 1.
+- Updated `routes/coupon.js` (apply endpoint) to enforce this logic. The server now counts total previous usages by `userId` and rejects the request if the max is met.
+
+### 4. Database Performance Indexes
+- Reconstructed `Product.js` and injected indices directly to the Mongoose Schema.
+- Added `ProductSchema.index({ name: 'text', brand: 'text' })` for fast regex/text searches.
+- Added `ProductSchema.index({ subCategory: 1 })` for subcategory listing performance.
+- Added compound index `ProductSchema.index({ status: 1, isDeleted: 1 })` for rapid active/deleted checks in queries.
+
+### 5. Structured Logging
+- Installed `winston`.
+- Configured `utils/logger.js` to emit JSON strings in production to file targets (`logs/combined.log` and `logs/error.log`).
+- Wrapped local development logs in a colored format.
+- Replaced the global error handler in `server.js`, MongoDB connection logic in `db.js`, and `product.js` error catches to use the new `logger.error` format.
+
+### 6. Order State Machine
+- In `routes/order.js`, modified `PUT /api/orders/:id/status` logic.
+- Prevented status regression (e.g. `Shipped` back to `Processing`).
+- Allowed status advancement explicitly in the logical progression: `Pending` -> `Processing` -> `Shipped` -> `Delivered`.
+- Allowed `Cancelled` state overrides where appropriate.
+
+## Validation Results
+- The Node.js server recompiled cleanly and the `npm run dev` monitor has restarted correctly without import/syntax errors.
+- `winston` logs will automatically appear in a `logs/` directory upon errors or standard console events.
+- All code correctly adheres to Mongoose ^6 hooks guidelines.
