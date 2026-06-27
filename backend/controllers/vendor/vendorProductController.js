@@ -229,7 +229,7 @@ export const createProduct = async (req, res) => {
       images: cleanImages,
       category: categoryId || null,
       subCategory: subCategoryId || null,
-      isActive: isActive ?? true,
+      isActive: (stock ?? 0) === 0 ? false : (isActive ?? true),
     });
 
     return res.status(201).json({
@@ -352,6 +352,10 @@ export const updateProduct = async (req, res) => {
     if (salePrice !== undefined) product.salePrice = salePrice;
     if (stock !== undefined) product.stock = stock;
     if (isActive !== undefined) product.isActive = isActive;
+
+    if (product.stock === 0) {
+      product.isActive = false;
+    }
 
     const updated = await product.save();
 

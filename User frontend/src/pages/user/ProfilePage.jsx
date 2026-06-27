@@ -83,7 +83,7 @@ const ProfilePage = () => {
     if (activeTab === "Gift Cards" && isAuthenticated) {
       fetchMyGiftCards();
     }
-  }, [activeTab, isAuthenticated]);
+  }, [activeTab, isAuthenticated, fetchMyGiftCards]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -108,7 +108,6 @@ const ProfilePage = () => {
   useEffect(() => {
     if (user) {
       const data = buildProfileData(user);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProfileData(data);
       setFormData(data);
       setAvatarPreview(data.image);
@@ -194,7 +193,6 @@ const ProfilePage = () => {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSavedAddresses();
     const handler = () => loadSavedAddresses();
     window.addEventListener('addresses:updated', handler);
@@ -434,15 +432,15 @@ const ProfilePage = () => {
             </div>
 
             <div className="profile-membership-info">
-              <h3 className="profile-section-title">Membership Benefits</h3>
+              <h3 className="profile-section-title">Atelier Benefits</h3>
               <div className="profile-benefits-list">
                 <div className="profile-benefit-item">
                   <div className="profile-benefit-icon">
                     <ShoppingBag />
                   </div>
                   <div>
-                    <h4>Free Shipping</h4>
-                    <p>On all orders over {formatPrice(1000)}</p>
+                    <h4>Atelier Shipping</h4>
+                    <p>Complimentary for curated finds above {formatPrice(1000)}</p>
                   </div>
                 </div>
                 <div className="profile-benefit-item">
@@ -450,8 +448,8 @@ const ProfilePage = () => {
                     <Ticket />
                   </div>
                   <div>
-                    <h4>Exclusive Discounts</h4>
-                    <p>Up to 20% off premium items</p>
+                    <h4>Thoughtful Value</h4>
+                    <p>Enduring quality, curated for you</p>
                   </div>
                 </div>
                 <div className="profile-benefit-item">
@@ -459,8 +457,8 @@ const ProfilePage = () => {
                     <Heart />
                   </div>
                   <div>
-                    <h4>VIP Access</h4>
-                    <p>Early access to new collections</p>
+                    <h4>Journal Access</h4>
+                    <p>First look at newly curated thrift finds</p>
                   </div>
                 </div>
               </div>
@@ -757,7 +755,7 @@ const ProfilePage = () => {
 
             <div className="profile-badge">
               <Crown />
-              <span>Premium Member</span>
+              <span>LOFT Member</span>
             </div>
 
             <div className="profile-details">

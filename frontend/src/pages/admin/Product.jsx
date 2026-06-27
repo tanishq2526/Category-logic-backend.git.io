@@ -337,7 +337,7 @@ function ProductModal({
               <SearchableDropdown
                 value={selectedCategory}
                 onChange={(val) => setSelectedCategory(val)}
-                fetchUrl="/api/subCategory/search"
+                fetchUrl={selectedParent ? `/api/subCategory/search?parentCategory=${selectedParent}` : "/api/subCategory/search"}
                 placeholder="Select Sub Category"
               />
             </div>

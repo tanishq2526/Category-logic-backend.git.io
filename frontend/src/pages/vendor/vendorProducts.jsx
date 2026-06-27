@@ -10,7 +10,7 @@ import "../../styles/vendor.css";
 
 const PAGE_SIZE = 10;
 const EMPTY_FORM = {
-  name: "", description: "", price: "", salePrice: "", stock_qty: "", category: "", subCategory: "", isActive: true,
+  name: "", description: "", price: "", salePrice: "", stock: "", category: "", subCategory: "", isActive: true,
 };
 const TOTAL_SLOTS = 5;
 
@@ -21,12 +21,12 @@ const StatusBadge = ({ isActive }) => (
   </span>
 );
 
-const StockBadge = ({ stock_qty }) => {
-  const low = stock_qty <= 5;
-  const out = stock_qty === 0;
+const StockBadge = ({ stock }) => {
+  const low = stock <= 5;
+  const out = stock === 0;
   return (
     <span className={`badge ${out ? "badge-error" : low ? "badge-warning" : "badge-info"}`}>
-      {stock_qty} {out ? "— Out" : low ? "— Low" : "units"}
+      {stock} {out ? "— Out" : low ? "— Low" : "units"}
     </span>
   );
 };
@@ -115,16 +115,19 @@ function ProductModal({ mode, initial, initialImages, categories, vendorSlug, on
     if (!form.name.trim()) return setErr("Product name is required.");
     if (form.price === "" || isNaN(Number(form.price)) || Number(form.price) < 0) return setErr("A valid price (≥ 0) is required.");
     if (form.salePrice !== "" && Number(form.salePrice) >= Number(form.price)) return setErr("Sale price must be less than the regular price.");
-    if (form.stock_qty !== "" && Number(form.stock_qty) < 0) return setErr("Stock quantity cannot be negative.");
+    if (form.stock !== "" && Number(form.stock) < 0) return setErr("Stock quantity cannot be negative.");
     if (imageSlots.some((s) => s.uploading)) return setErr("Please wait for all uploads to finish before saving.");
     setErr("");
+
+    const stockVal = form.stock !== "" ? Number(form.stock) : 0;
+    const finalIsActive = stockVal === 0 ? false : form.isActive;
 
     const images = imageSlots.map((s) => s.url).filter(Boolean);
     const payload = {
       name: form.name.trim(), description: form.description.trim(), price: Number(form.price),
       salePrice: form.salePrice !== "" ? Number(form.salePrice) : null,
-      stock_qty: form.stock_qty !== "" ? Number(form.stock_qty) : 0, category: form.category || null,
-      subCategory: form.subCategory || null, isActive: form.isActive, images,
+      stock: stockVal, category: form.category || null,
+      subCategory: form.subCategory || null, isActive: finalIsActive, images,
     };
 
     try {
@@ -173,8 +176,8 @@ function ProductModal({ mode, initial, initialImages, categories, vendorSlug, on
         <div className="form-row">
           <div className="form-group">
             <label>Stock Quantity</label>
-            <input type="number" min="0" value={form.stock_qty} onChange={(e) => set("stock_qty", e.target.value)} placeholder="0" className={fieldErrors.stock_qty ? "input-error" : ""} />
-            {fieldErrors.stock_qty && <div className="field-error">{fieldErrors.stock_qty}</div>}
+            <input type="number" min="0" value={form.stock} onChange={(e) => set("stock", e.target.value)} placeholder="0" className={fieldErrors.stock ? "input-error" : ""} />
+            {fieldErrors.stock && <div className="field-error">{fieldErrors.stock}</div>}
           </div>
         </div>
 
@@ -208,10 +211,20 @@ function ProductModal({ mode, initial, initialImages, categories, vendorSlug, on
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
           <div>
             <div style={{ fontWeight: 600 }}>Active / Visible</div>
-            <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>Customers can see this product</div>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+              {Number(form.stock) === 0 ? "Product is out of stock and cannot be active" : "Customers can see this product"}
+            </div>
           </div>
-          <button type="button" className={`toggle-btn ${form.isActive ? 'active' : 'inactive'}`} onClick={() => set("isActive", !form.isActive)}>
-            {form.isActive ? <ToggleRight size={28} /> : <ToggleLeft size={28} />}
+          <button 
+            type="button" 
+            className={`toggle-btn ${form.isActive && Number(form.stock) > 0 ? 'active' : 'inactive'}`} 
+            onClick={() => {
+              if (Number(form.stock) > 0) set("isActive", !form.isActive);
+            }}
+            disabled={Number(form.stock) === 0}
+            style={{ opacity: Number(form.stock) === 0 ? 0.5 : 1, cursor: Number(form.stock) === 0 ? "not-allowed" : "pointer" }}
+          >
+            {form.isActive && Number(form.stock) > 0 ? <ToggleRight size={28} /> : <ToggleLeft size={28} />}
           </button>
         </div>
 
@@ -279,7 +292,7 @@ function VendorProducts() {
     if (sortBy === "name-desc") return (b.name || "").localeCompare(a.name || "");
     if (sortBy === "price-low") return (a.price || 0) - (b.price || 0);
     if (sortBy === "price-high") return (b.price || 0) - (a.price || 0);
-    if (sortBy === "stock-low") return (a.stock_qty || 0) - (b.stock_qty || 0);
+    if (sortBy === "stock-low") return (a.stock || 0) - (b.stock || 0);
     return 0; // newest
   });
 
@@ -290,8 +303,8 @@ function VendorProducts() {
   useEffect(() => { setPage(1); }, [search, filterCat, filterStatus, sortBy]);
 
   const activeCount = products.filter(p => p.isActive).length;
-  const outOfStock = products.filter(p => (p.stock_qty || 0) === 0).length;
-  const totalValue = products.reduce((s, p) => s + (p.price || 0) * (p.stock_qty || 0), 0);
+  const outOfStock = products.filter(p => (p.stock || 0) === 0).length;
+  const totalValue = products.reduce((s, p) => s + (p.price || 0) * (p.stock || 0), 0);
 
   const handleCreate = async (form) => {
     setSaving(true);
@@ -452,7 +465,7 @@ function VendorProducts() {
                     <div style={{ fontWeight: 600 }}>₹{p.price}</div>
                     {p.salePrice && <div style={{ fontSize: "11px", color: "var(--success)" }}>Sale: ₹{p.salePrice}</div>}
                   </td>
-                  <td><StockBadge stock_qty={p.stock_qty || 0} /></td>
+                  <td><StockBadge stock={p.stock || 0} /></td>
                   <td><StatusBadge isActive={p.isActive} /></td>
                   <td>
                     <div style={{ display: "flex", gap: "8px" }}>
