@@ -447,7 +447,11 @@ export default function SubCategory() {
                   </td>
                   <td style={bodyCellStyle}>{subCategory.parentCategory?.name || "—"}</td>
                   <td style={bodyCellStyle}>{subCategory.name}</td>
-                  <td style={bodyCellStyle}>{subCategory.slug}</td>
+                  <td style={bodyCellStyle}>
+                    <code style={{ background: "#f1f5f9", padding: "2px 8px", borderRadius: "4px", fontSize: "12px", color: "#64748b" }}>
+                      {subCategory.slug}
+                    </code>
+                  </td>
                   <td style={bodyCellStyle}>
                     <span
                       style={{
@@ -569,7 +573,14 @@ export default function SubCategory() {
                 <input
                   type="text"
                   value={form.name}
-                  onChange={(event) => handleChange("name", event.target.value)}
+                  onChange={(event) => {
+                    const val = event.target.value;
+                    setForm((f) => ({
+                      ...f,
+                      name: val,
+                      slug: editingId ? f.slug : val.toLowerCase().replace(/\s+/g, "-"),
+                    }));
+                  }}
                   style={inputStyle}
                   placeholder="Enter subcategory name"
                 />

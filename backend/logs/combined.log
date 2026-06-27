@@ -46,3 +46,29 @@
 {"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-26 17:47:55"}
 {"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-26 17:47:56"}
 {"error":"PayloadTooLargeError: request entity too large\n    at readStream (T:\\Category\\backend\\node_modules\\raw-body\\index.js:163:17)\n    at getRawBody (T:\\Category\\backend\\node_modules\\raw-body\\index.js:116:12)\n    at read (T:\\Category\\backend\\node_modules\\body-parser\\lib\\read.js:113:3)\n    at jsonParser (T:\\Category\\backend\\node_modules\\body-parser\\lib\\types\\json.js:88:5)\n    at Layer.handleRequest (T:\\Category\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at trimPrefix (T:\\Category\\backend\\node_modules\\router\\index.js:342:13)\n    at T:\\Category\\backend\\node_modules\\router\\index.js:297:9\n    at processParams (T:\\Category\\backend\\node_modules\\router\\index.js:582:12)\n    at next (T:\\Category\\backend\\node_modules\\router\\index.js:291:5)\n    at cors (T:\\Category\\backend\\node_modules\\cors\\lib\\index.js:188:7)","level":"error","message":"GLOBAL ERROR: request entity too large","method":"PUT","timestamp":"2026-06-26 17:52:08","url":"/api/auth/profile"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-26 18:17:10"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-26 18:17:11"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-27 13:50:35"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 13:50:37"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-27 14:33:37"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 14:33:38"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-27 15:08:22"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 15:08:23"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 15:08:35"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-27 15:16:41"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 15:16:41"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-27 15:22:58"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 15:22:59"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-27 15:23:15"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 15:23:15"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 15:23:22"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-27 15:31:28"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 15:31:28"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 15:31:36"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-27 17:36:10"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 17:36:11"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 17:36:18"}
+{"error":"Error: read ECONNRESET\n    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)","level":"error","message":"GLOBAL ERROR: read ECONNRESET","method":"POST","timestamp":"2026-06-27 19:32:40","url":"/api/upload"}
+{"error":"Error: read ECONNRESET\n    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)","level":"error","message":"GLOBAL ERROR: read ECONNRESET","method":"POST","timestamp":"2026-06-27 19:32:40","url":"/api/upload"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-27 20:48:33"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-27 20:48:33"}

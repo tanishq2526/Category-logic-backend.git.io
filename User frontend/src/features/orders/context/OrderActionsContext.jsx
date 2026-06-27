@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useMemo } from "react";
 import PropTypes from "prop-types";
 import { mockOrders } from "../data/mockOrders";
 import { useToast } from "../../../context/ToastContext";
@@ -54,14 +54,16 @@ export const OrderActionsProvider = ({ children }) => {
   });
 
   // Calculate the mock orders merged with overrides for general frontend-only navigation
-  // Derived directly during render to prevent synchronous cascading renders in effects
-  const orders = mockOrders.map((order) => {
-    const override = overrides[order._id || order.id];
-    if (override) {
-      return { ...order, ...override };
-    }
-    return order;
-  });
+  const orders = useMemo(
+    () => mockOrders.map((order) => {
+      const override = overrides[order._id || order.id];
+      if (override) {
+        return { ...order, ...override };
+      }
+      return order;
+    }),
+    [overrides],
+  );
 
   // Merge external backend orders with local overrides
   const getMergedOrders = (backendOrders) => {
@@ -169,7 +171,7 @@ export const OrderActionsProvider = ({ children }) => {
 
   // Request return action
   const requestReturn = async (orderId, { reason, comments, images }) => {
-    // TODO: POST /api/orders/:id/return
+    // Backend integration: POST /api/orders/:id/return
     // For backend:
     // await authFetch(`/api/orders/${orderId}/return`, { method: "POST", body: { reason, comments, images } });
 
@@ -208,7 +210,7 @@ export const OrderActionsProvider = ({ children }) => {
 
   // Check refund status helper
   const getRefundStatus = (orderId) => {
-    // TODO: GET /api/orders/:id/refund-status
+    // Backend integration: GET /api/orders/:id/refund-status
     const order = getOrderById(orderId);
     if (!order) return null;
     return order.refundStatus || null;

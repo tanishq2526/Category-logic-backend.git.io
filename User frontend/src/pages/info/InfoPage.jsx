@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
 import {
   ChevronDown,
   ChevronUp,
@@ -91,26 +92,26 @@ const FAQ_ITEMS = [
 
 const OPEN_POSITIONS = [
   {
-    title: "Lead Apparel Designer",
-    dept: "Design & Atelier",
+    title: "Lead Curator & Vintage Specialist",
+    dept: "Curation & Design",
     location: "New Delhi, IN (On-site)",
     type: "Full-Time",
   },
   {
-    title: "Senior Frontend Engineer (React)",
+    title: "Senior Digital Platform Designer",
     dept: "Digital Experience",
     location: "Remote / Bengaluru, IN",
     type: "Full-Time",
   },
   {
-    title: "Creative Art Director",
-    dept: "Marketing & Editorial",
+    title: "Editorial Storyteller & Stylist",
+    dept: "Creative & Editorial",
     location: "Mumbai, IN (Hybrid)",
     type: "Full-Time",
   },
   {
-    title: "Atelier Intern",
-    dept: "Design & Atelier",
+    title: "Curation & Styling Apprentice",
+    dept: "Curation & Design",
     location: "New Delhi, IN (On-site)",
     type: "6-Month Internship",
   },
@@ -135,12 +136,73 @@ export default function InfoPage() {
     return INFO_PAGES[normalized] ? normalized : "about";
   });
 
+  const toast = useToast();
+  const timeoutRef = useRef(null);
+  const [formState, setFormState] = useState({ name: "", email: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    const currentTimeout = timeoutRef.current;
+    return () => {
+      if (currentTimeout) {
+        clearTimeout(currentTimeout);
+      }
+    };
+  }, []);
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    const { name, email, message } = formState;
+    if (!name.trim() || !email.trim() || !message.trim()) {
+      setSubmitError("Please fill out all fields.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    const formspreeId = import.meta.env.VITE_FORMSPREE_ID;
+
+    if (formspreeId) {
+      try {
+        const response = await fetch(`https://formspree.io/f/${formspreeId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, message }),
+        });
+
+        if (response.ok) {
+          setFormState({ name: "", email: "", message: "" });
+          toast.success("✓ Your message has been sent successfully!");
+        } else {
+          throw new Error("Failed to send message.");
+        }
+      } catch (err) {
+        console.error("Contact form submission error:", err);
+        setSubmitError("Failed to send message. Please try again later.");
+        toast.error("Failed to submit form.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      // client-side delivery fallback: mailto
+      setIsSubmitting(false);
+      setFormState({ name: "", email: "", message: "" });
+      toast.success("✓ Opening your mail client to send the message...");
+
+      const mailtoUrl = `mailto:concierge@loft.com?subject=LOFT Contact Form - ${encodeURIComponent(name)}&body=${encodeURIComponent(
+        `From: ${name} (${email})\n\nMessage:\n${message}`
+      )}`;
+      window.location.href = mailtoUrl;
+    }
+  };
+
   useEffect(() => {
     const pathParts = location.pathname.split("/");
     const pathSlug = pathParts[pathParts.length - 1];
     const normalized = SLUG_MAP[pathSlug] || pathSlug;
     if (INFO_PAGES[normalized]) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(normalized);
     }
   }, [location.pathname]);
@@ -163,27 +225,27 @@ export default function InfoPage() {
         return (
           <div className="info-tab-content fade-in">
             <p className="info-lead">
-              LOFT was founded with a singular purpose: to create timeless, high-end garments that blend architectural structure with contemporary ease. We design for the modern individual who values craftsmanship, quality, and quiet luxury.
+              LOFT stands for List Of Favourite Thrift. LOFT isn't simply another thrift marketplace—it's a carefully curated collection of premium pre-loved fashion where every piece earns its place.
             </p>
             <div className="info-image-block">
               <div className="info-text-overlay-block">
-                <h3>Our Atelier</h3>
+                <h3>Our Curation</h3>
                 <p>
-                  Every piece in the LOFT catalog begins in our Delhi design atelier. We source premium wool, organic cotton, silk, and sustainable linens from verified weavers around the globe, ensuring each fiber meets our strict standards of longevity and tactile excellence.
+                  Every garment in our catalog is hand-selected. We spend weekends discovering incredible vintage and second-hand pieces, ensuring each item meets our strict standards of longevity, fabric, and character. We believe every piece has another story to tell.
                 </p>
               </div>
             </div>
             <div className="info-grid-2">
               <div>
-                <h4>Craftsmanship First</h4>
+                <h4>Timeless Design</h4>
                 <p>
-                  We collaborate with heritage mills and skilled craftsmen to ensure tailored perfection. We believe clothing should be an investment—pieces you return to season after season, built to last a lifetime.
+                  We look for exceptional quality, craftsmanship, and longevity. We believe clothing should be an investment—timeless pieces you return to season after season, crafted to last and made to be worn again.
                 </p>
               </div>
               <div>
-                <h4>Conscious Luxury</h4>
+                <h4>Circular Fashion</h4>
                 <p>
-                  At LOFT, sustainability is not a marketing term—it's a core design principle. We limit production runs to reduce waste, pack every order in recycled FSC certified boxes, and offset our shipping emissions.
+                  At LOFT, sustainability is at our core. Every purchase extends the life of well-made clothing. We value quality over quantity, packing every order in recycled, FSC-certified boxes to keep fashion circular.
                 </p>
               </div>
             </div>
@@ -194,7 +256,7 @@ export default function InfoPage() {
         return (
           <div className="info-tab-content fade-in">
             <p className="info-lead">
-              Whether you need sizing advice, styling assistance, or have inquiries regarding an order, our dedicated customer concierge team is available to assist you.
+              Whether you need sizing details, care advice, or have questions about a curated piece, our team is here to help.
             </p>
 
             <div className="info-grid-2">
@@ -228,21 +290,50 @@ export default function InfoPage() {
 
               <div className="contact-form-box">
                 <h4>Send Us a Message</h4>
-                <form onSubmit={(e) => { e.preventDefault(); alert("Message sent successfully!"); e.target.reset(); }}>
+                {submitError && (
+                  <div className="form-error-message" style={{ color: "#c53030", fontSize: "13px", marginBottom: "10px", fontWeight: "500" }}>
+                    {submitError}
+                  </div>
+                )}
+                <form onSubmit={handleContactSubmit} aria-busy={isSubmitting}>
                   <div className="form-group-info">
-                    <label>Full Name</label>
-                    <input type="text" placeholder="Your name" required />
+                    <label htmlFor="contact-name">Full Name</label>
+                    <input
+                      id="contact-name"
+                      type="text"
+                      placeholder="Your name"
+                      value={formState.name}
+                      onChange={(e) => setFormState(prev => ({ ...prev, name: e.target.value }))}
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div className="form-group-info">
-                    <label>Email Address</label>
-                    <input type="email" placeholder="Your email address" required />
+                    <label htmlFor="contact-email">Email Address</label>
+                    <input
+                      id="contact-email"
+                      type="email"
+                      placeholder="Your email address"
+                      value={formState.email}
+                      onChange={(e) => setFormState(prev => ({ ...prev, email: e.target.value }))}
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div className="form-group-info">
-                    <label>Message</label>
-                    <textarea rows="4" placeholder="How can we help you?" required></textarea>
+                    <label htmlFor="contact-message">Message</label>
+                    <textarea
+                      id="contact-message"
+                      rows="4"
+                      placeholder="How can we help you?"
+                      value={formState.message}
+                      onChange={(e) => setFormState(prev => ({ ...prev, message: e.target.value }))}
+                      required
+                      disabled={isSubmitting}
+                    ></textarea>
                   </div>
-                  <button type="submit" className="info-submit-btn">
-                    Submit Message
+                  <button type="submit" className="info-submit-btn" disabled={isSubmitting}>
+                    {isSubmitting ? "Sending..." : "Submit Message"}
                   </button>
                 </form>
               </div>
@@ -405,7 +496,7 @@ export default function InfoPage() {
         return (
           <div className="info-tab-content fade-in">
             <p className="info-lead">
-              We are always looking for visionary creators, tailors, developers, and digital marketers to join our Delhi-based atelier and grow with the LOFT brand.
+              We are always looking for curators, designers, and circular fashion advocates to join our Delhi-based atelier and help share the stories of pre-loved garments.
             </p>
             
             <h4 style={{ marginBottom: "20px", marginTop: "30px" }}>Open Positions</h4>
@@ -423,7 +514,7 @@ export default function InfoPage() {
 
             <div className="careers-cta-box" style={{ marginTop: "40px", padding: "24px", background: "var(--ds-color-accent-soft)", borderRadius: "var(--ds-radius-md)" }}>
               <h5>Spontaneous Application</h5>
-              <p>Don't see your role? We'd still love to hear from you. Send your portfolio and resume to <strong>careers@loftfashion.com</strong>.</p>
+              <p>Don't see your role? We'd still love to hear from you. Send your portfolio and resume to <strong>careers@loft.com</strong>.</p>
             </div>
           </div>
         );
@@ -445,13 +536,13 @@ export default function InfoPage() {
               <div className="help-card" onClick={() => handleTabChange("faq")}>
                 <HelpCircle className="help-card-icon" />
                 <h5>FAQ Database</h5>
-                <p>Browse detailed articles on payments, coupons, and fits.</p>
+                <p>Browse common inquiries on payments, coupons, and fits.</p>
               </div>
 
               <div className="help-card" onClick={() => handleTabChange("contact")}>
                 <Mail className="help-card-icon" />
                 <h5>Support Concierge</h5>
-                <p>Chat with our agents or send a formal support ticket.</p>
+                <p>Reach our team for personalized assistance.</p>
               </div>
             </div>
           </div>
