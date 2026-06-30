@@ -33,7 +33,7 @@ export const sendWelcomeEmail = async (user) => {
   const html = `
     <h1>Welcome, ${user.name}!</h1>
     <p>Thank you for registering with LOFT Store.</p>
-    <p>We are excited to have you on board.</p>
+    <p>We are excited to have you on board:)</p>
   `;
   return sendEmail({ to: user.email, subject, html });
 };

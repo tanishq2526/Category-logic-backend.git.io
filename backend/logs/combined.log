@@ -84,3 +84,54 @@
 {"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-28 15:13:16"}
 {"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 11:46:02"}
 {"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 11:46:03"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 12:26:50"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 12:26:51"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 12:33:28"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 12:33:29"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 12:33:46"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 12:33:47"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 13:58:38"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 13:58:39"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 14:04:07"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 14:04:07"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 14:18:33"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 14:18:34"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 16:04:13"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:04:14"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 16:04:34"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:04:34"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:05:03"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:05:41"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 16:06:30"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:06:32"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:06:49"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:08:55"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 16:11:11"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:11:16"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:11:31"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:21:38"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 16:27:56"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:28:01"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 16:31:08"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:31:08"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 16:58:07"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:58:08"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 16:59:12"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:59:13"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 17:16:28"}
+{"error":{"beforeHandshake":false,"connectionGeneration":0,"errorLabelSet":{}},"level":"error","message":"MongoDB Connection Error: connect ETIMEDOUT 159.41.225.248:27017","timestamp":"2026-06-29 17:16:50"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 17:19:59"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 17:20:00"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 17:20:13"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 17:20:14"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 17:27:28"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 17:27:28"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 17:27:46"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 17:27:47"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-30 12:34:55"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-30 12:34:55"}
+{"error":"PayloadTooLargeError: request entity too large\n    at readStream (T:\\Category\\backend\\node_modules\\raw-body\\index.js:163:17)\n    at getRawBody (T:\\Category\\backend\\node_modules\\raw-body\\index.js:116:12)\n    at read (T:\\Category\\backend\\node_modules\\body-parser\\lib\\read.js:113:3)\n    at jsonParser (T:\\Category\\backend\\node_modules\\body-parser\\lib\\types\\json.js:88:5)\n    at Layer.handleRequest (T:\\Category\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at trimPrefix (T:\\Category\\backend\\node_modules\\router\\index.js:342:13)\n    at T:\\Category\\backend\\node_modules\\router\\index.js:297:9\n    at processParams (T:\\Category\\backend\\node_modules\\router\\index.js:582:12)\n    at next (T:\\Category\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///T:/Category/backend/node_modules/express-rate-limit/dist/index.mjs:970:7","level":"error","message":"GLOBAL ERROR: request entity too large","method":"PUT","timestamp":"2026-06-30 12:39:05","url":"/api/auth/profile"}
+{"error":"PayloadTooLargeError: request entity too large\n    at readStream (T:\\Category\\backend\\node_modules\\raw-body\\index.js:163:17)\n    at getRawBody (T:\\Category\\backend\\node_modules\\raw-body\\index.js:116:12)\n    at read (T:\\Category\\backend\\node_modules\\body-parser\\lib\\read.js:113:3)\n    at jsonParser (T:\\Category\\backend\\node_modules\\body-parser\\lib\\types\\json.js:88:5)\n    at Layer.handleRequest (T:\\Category\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at trimPrefix (T:\\Category\\backend\\node_modules\\router\\index.js:342:13)\n    at T:\\Category\\backend\\node_modules\\router\\index.js:297:9\n    at processParams (T:\\Category\\backend\\node_modules\\router\\index.js:582:12)\n    at next (T:\\Category\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///T:/Category/backend/node_modules/express-rate-limit/dist/index.mjs:970:7","level":"error","message":"GLOBAL ERROR: request entity too large","method":"PUT","timestamp":"2026-06-30 12:39:20","url":"/api/auth/profile"}
+{"error":"PayloadTooLargeError: request entity too large\n    at readStream (T:\\Category\\backend\\node_modules\\raw-body\\index.js:163:17)\n    at getRawBody (T:\\Category\\backend\\node_modules\\raw-body\\index.js:116:12)\n    at read (T:\\Category\\backend\\node_modules\\body-parser\\lib\\read.js:113:3)\n    at jsonParser (T:\\Category\\backend\\node_modules\\body-parser\\lib\\types\\json.js:88:5)\n    at Layer.handleRequest (T:\\Category\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at trimPrefix (T:\\Category\\backend\\node_modules\\router\\index.js:342:13)\n    at T:\\Category\\backend\\node_modules\\router\\index.js:297:9\n    at processParams (T:\\Category\\backend\\node_modules\\router\\index.js:582:12)\n    at next (T:\\Category\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///T:/Category/backend/node_modules/express-rate-limit/dist/index.mjs:970:7","level":"error","message":"GLOBAL ERROR: request entity too large","method":"PUT","timestamp":"2026-06-30 12:39:28","url":"/api/auth/profile"}
+{"error":"PayloadTooLargeError: request entity too large\n    at readStream (T:\\Category\\backend\\node_modules\\raw-body\\index.js:163:17)\n    at getRawBody (T:\\Category\\backend\\node_modules\\raw-body\\index.js:116:12)\n    at read (T:\\Category\\backend\\node_modules\\body-parser\\lib\\read.js:113:3)\n    at jsonParser (T:\\Category\\backend\\node_modules\\body-parser\\lib\\types\\json.js:88:5)\n    at Layer.handleRequest (T:\\Category\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at trimPrefix (T:\\Category\\backend\\node_modules\\router\\index.js:342:13)\n    at T:\\Category\\backend\\node_modules\\router\\index.js:297:9\n    at processParams (T:\\Category\\backend\\node_modules\\router\\index.js:582:12)\n    at next (T:\\Category\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///T:/Category/backend/node_modules/express-rate-limit/dist/index.mjs:970:7","level":"error","message":"GLOBAL ERROR: request entity too large","method":"PUT","timestamp":"2026-06-30 12:41:10","url":"/api/auth/profile"}
+{"error":"PayloadTooLargeError: request entity too large\n    at readStream (T:\\Category\\backend\\node_modules\\raw-body\\index.js:163:17)\n    at getRawBody (T:\\Category\\backend\\node_modules\\raw-body\\index.js:116:12)\n    at read (T:\\Category\\backend\\node_modules\\body-parser\\lib\\read.js:113:3)\n    at jsonParser (T:\\Category\\backend\\node_modules\\body-parser\\lib\\types\\json.js:88:5)\n    at Layer.handleRequest (T:\\Category\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at trimPrefix (T:\\Category\\backend\\node_modules\\router\\index.js:342:13)\n    at T:\\Category\\backend\\node_modules\\router\\index.js:297:9\n    at processParams (T:\\Category\\backend\\node_modules\\router\\index.js:582:12)\n    at next (T:\\Category\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///T:/Category/backend/node_modules/express-rate-limit/dist/index.mjs:970:7","level":"error","message":"GLOBAL ERROR: request entity too large","method":"PUT","timestamp":"2026-06-30 12:41:22","url":"/api/auth/profile"}
