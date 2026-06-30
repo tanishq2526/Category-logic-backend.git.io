@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import ImageUploader from "../../components/ImageUploader";
 
 const S = { fontFamily: "'Outfit',sans-serif" };
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const getHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -147,7 +148,7 @@ export default function Category() {
   }, [categories, search, filterStatus]);
 
   async function loadCategories(pageNum = 1) {
-    const res = await fetch(`/api/category/all?page=${pageNum}`, { headers: getHeaders() });
+    const res = await fetch(`${BASE_URL}/api/category/all?page=${pageNum}`, { headers: getHeaders() });
     const data = await res.json();
     setCategories(data.data || []);
     setTotalPages(data.pages || data.totalPages || 1);
@@ -174,8 +175,8 @@ export default function Category() {
     if (!form.name.trim()) return alert("Name is required");
     setSaving(true);
     const url = editData
-      ? `/api/category/update/${editData._id}`
-      : "/api/category/create";
+      ? `${BASE_URL}/api/category/update/${editData._id}`
+      : `${BASE_URL}/api/category/create`;
     const method = editData ? "PUT" : "POST";
     const res = await fetch(url, {
       method,
@@ -193,7 +194,7 @@ export default function Category() {
   const handleToggleStatus = async (cat) => {
     try {
       const newStatus = cat.status === "Active" ? "Inactive" : "Active";
-      const response = await fetch(`/api/category/update/${cat._id}`, {
+      const response = await fetch(`${BASE_URL}/api/category/update/${cat._id}`, {
         method: "PUT",
         headers: getHeaders(),
         body: JSON.stringify({ ...cat, status: newStatus }),
@@ -217,7 +218,7 @@ export default function Category() {
       )
     )
       return;
-    await fetch(`/api/category/delete/${id}`, {
+    await fetch(`${BASE_URL}/api/category/delete/${id}`, {
       method: "DELETE",
       headers: getHeaders(),
     });
@@ -229,7 +230,7 @@ export default function Category() {
     if (!confirm(`Delete ${selected.length} categories?`)) return;
     await Promise.all(
       selected.map((id) =>
-        fetch(`/api/category/delete/${id}`, {
+        fetch(`${BASE_URL}/api/category/delete/${id}`, {
           method: "DELETE",
           headers: getHeaders(),
         }),
