@@ -1011,8 +1011,8 @@ export default function Orderdetails() {
                       </div>
                     </td>
                     <td style={{ padding: "9px 12px", color: "#6b7280" }}>
-                      {order.orderItems?.length || 0} item
-                      {order.orderItems?.length !== 1 ? "s" : ""}
+                      {order.orderItems?.reduce((sum, item) => sum + (item.qty || item.quantity || 1), 0) || 0} item
+                      {order.orderItems?.reduce((sum, item) => sum + (item.qty || item.quantity || 1), 0) !== 1 ? "s" : ""}
                     </td>
                     <td
                       style={{
@@ -1031,7 +1031,7 @@ export default function Orderdetails() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {order.user?.phone || "—"}
+                      {order.user?.phone || order.shippingAddress?.phone || order.address?.contactNumber || "—"}
                     </td>
                     <td
                       style={{

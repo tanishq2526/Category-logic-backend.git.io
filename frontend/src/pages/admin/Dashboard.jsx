@@ -72,8 +72,10 @@ function MiniBar({ label, value, max, color, prefix = "₹", suffix = "" }) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [subCategories, setSubCategories] = useState([]);
+  const [categoriesCount, setCategoriesCount] = useState(0);
+  const [subCategoriesCount, setSubCategoriesCount] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [activeProductsCount, setActiveProductsCount] = useState(0);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hoveredBar, setHoveredBar] = useState(null); // { index, x, revenue, month }
@@ -85,9 +87,11 @@ export default function Dashboard() {
       API("/api/product/all"),
       API("/api/orders?limit=all")
     ]).then(([cat, sub, prod, orderData]) => {
-      setCategories(cat.data || []);
-      setSubCategories(sub.data || []);
+      setCategoriesCount(cat.total || 0);
+      setSubCategoriesCount(sub.total || 0);
       setProducts(prod.data || []);
+      setTotalProducts(prod.total || 0);
+      setActiveProductsCount(prod.active || 0);
       setOrders(orderData.orders || []);
       setLoading(false);
     });
@@ -97,7 +101,7 @@ export default function Dashboard() {
     .filter((o) => o.orderStatus !== "Cancelled")
     .reduce((sum, o) => sum + (o.totalPrice || 0), 0);
 
-  const activeProducts = products.filter((p) => p.status === "Active").length;
+  const activeProducts = activeProductsCount;
 
   const pendingOrders = orders.filter((o) => o.orderStatus === "Pending").length;
 
@@ -155,6 +159,7 @@ export default function Dashboard() {
 
   const topProducts = [...products]
     .map(p => ({ ...p, totalSold: productSales[p._id] || 0 }))
+    .filter(p => p.totalSold > 0)
     .sort((a, b) => b.totalSold - a.totalSold)
     .slice(0, 6);
 
@@ -229,19 +234,19 @@ export default function Dashboard() {
         />
         <StatCard
           label="Total Products"
-          value={products.length}
+          value={totalProducts}
           color="#8b5cf6"
           sub={`${activeProducts} active`}
           onClick={() => navigate("/admin/products")}
         />
         <StatCard
           label="Categories"
-          value={categories.length}
+          value={categoriesCount}
           color="#06b6d4"
         />
         <StatCard
           label="SubCategories"
-          value={subCategories.length}
+          value={subCategoriesCount}
           color="#10b981"
         />
         <StatCard

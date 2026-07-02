@@ -84,3 +84,22 @@
 {"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-28 15:13:16"}
 {"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 11:46:02"}
 {"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 11:46:03"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 12:07:09"}
+{"error":{"cause":{"commonWireVersion":0,"compatible":true,"heartbeatFrequencyMS":10000,"localThresholdMS":15,"logicalSessionTimeoutMinutes":null,"maxElectionId":null,"maxSetVersion":null,"servers":{"localhost:27017":{"$clusterTime":null,"address":"localhost:27017","arbiters":[],"electionId":null,"error":{"beforeHandshake":false,"errorLabelSet":{}},"hosts":[],"iscryptd":false,"lastUpdateTime":30712,"lastWriteDate":0,"logicalSessionTimeoutMinutes":null,"maxBsonObjectSize":null,"maxMessageSizeBytes":null,"maxWireVersion":0,"maxWriteBatchSize":null,"me":null,"minRoundTripTime":0,"minWireVersion":0,"passives":[],"primary":null,"roundTripTime":-1,"setName":null,"setVersion":null,"tags":{},"topologyVersion":null,"type":"Unknown"}},"setName":null,"stale":false,"type":"Unknown"},"errorLabelSet":{},"message":"connect ECONNREFUSED ::1:27017, connect ECONNREFUSED 127.0.0.1:27017","reason":{"commonWireVersion":0,"compatible":true,"heartbeatFrequencyMS":10000,"localThresholdMS":15,"logicalSessionTimeoutMinutes":null,"maxElectionId":null,"maxSetVersion":null,"servers":{"localhost:27017":{"$clusterTime":null,"address":"localhost:27017","arbiters":[],"electionId":null,"error":{"beforeHandshake":false,"errorLabelSet":{}},"hosts":[],"iscryptd":false,"lastUpdateTime":30712,"lastWriteDate":0,"logicalSessionTimeoutMinutes":null,"maxBsonObjectSize":null,"maxMessageSizeBytes":null,"maxWireVersion":0,"maxWriteBatchSize":null,"me":null,"minRoundTripTime":0,"minWireVersion":0,"passives":[],"primary":null,"roundTripTime":-1,"setName":null,"setVersion":null,"tags":{},"topologyVersion":null,"type":"Unknown"}},"setName":null,"stale":false,"type":"Unknown"}},"level":"error","message":"MongoDB Connection Error: connect ECONNREFUSED ::1:27017, connect ECONNREFUSED 127.0.0.1:27017","timestamp":"2026-06-29 12:07:39"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 12:09:13"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 12:09:13"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 16:13:28"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:13:29"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 16:14:34"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-29 18:18:41"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-29 18:18:41"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-30 10:59:04"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-06-30 10:59:04"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-06-30 12:33:31"}
+{"error":{"code":"ECONNREFUSED","hostname":"_mongodb._tcp.loft-database.cbhbvhu.mongodb.net","syscall":"querySrv"},"level":"error","message":"MongoDB Connection Error: querySrv ECONNREFUSED _mongodb._tcp.loft-database.cbhbvhu.mongodb.net","timestamp":"2026-06-30 12:33:31"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-07-01 13:05:49"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-07-01 13:05:49"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-07-01 13:32:40"}
+{"level":"info","message":"MongoDB Connected Successfully :)","timestamp":"2026-07-01 13:32:41"}
+{"level":"info","message":"🚀 Server running successfully on port 3000","timestamp":"2026-07-01 14:06:53"}
+{"error":{"code":"ECONNREFUSED","hostname":"_mongodb._tcp.loft-database.cbhbvhu.mongodb.net","syscall":"querySrv"},"level":"error","message":"MongoDB Connection Error: querySrv ECONNREFUSED _mongodb._tcp.loft-database.cbhbvhu.mongodb.net","timestamp":"2026-07-01 14:06:53"}

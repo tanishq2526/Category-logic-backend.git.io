@@ -1,0 +1,212 @@
+/* Notifications.css */
+
+.notif-page {
+  padding: 24px;
+  background-color: var(--primary-bg, #f1f5f9);
+  min-height: 100%;
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+}
+
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.notif-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0 0 4px 0;
+}
+
+.notif-subtitle {
+  font-size: 14px;
+  color: var(--text-muted, #64748b);
+  margin: 0;
+}
+
+.notif-mark-all-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: transparent;
+  color: var(--text-primary, #334155);
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: var(--radius-md, 8px);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notif-mark-all-btn:hover:not(:disabled) {
+  background-color: var(--surface, #ffffff);
+  border-color: var(--text-primary, #0f172a);
+}
+
+.notif-mark-all-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.notif-card {
+  background-color: var(--surface, #ffffff);
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--border-color, #e2e8f0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.notif-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.notif-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notif-badge {
+  background-color: var(--text-primary, #0f172a);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.notif-tabs {
+  display: flex;
+  background-color: var(--primary-bg, #f1f5f9);
+  padding: 4px;
+  border-radius: var(--radius-md, 8px);
+}
+
+.notif-tab {
+  padding: 6px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notif-tab.active {
+  background-color: var(--surface, #ffffff);
+  color: var(--text-primary, #0f172a);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.notif-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notif-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted, #94a3b8);
+  font-size: 14px;
+}
+
+.notif-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  background-color: var(--surface, #ffffff);
+}
+
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-item:hover {
+  background-color: #f8fafc;
+}
+
+.notif-item.unread {
+  background-color: #f8fafc;
+}
+
+.notif-item.unread:hover {
+  background-color: #f1f5f9;
+}
+
+.notif-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notif-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notif-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notif-unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #3b82f6; /* Blue dot */
+}
+
+.notif-item-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary, #475569);
+  line-height: 1.4;
+}
+
+.notif-item-time {
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+  margin-top: 2px;
+}
+
+@media (max-width: 640px) {
+  .notif-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .notif-tabs {
+    width: 100%;
+  }
+  .notif-tab {
+    flex: 1;
+  }
+}

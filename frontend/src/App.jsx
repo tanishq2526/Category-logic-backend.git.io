@@ -73,6 +73,7 @@ import Coupons from "./pages/admin/Coupons";
 import GiftCards from "./pages/admin/GiftCards";
 import AuditLogs from "./pages/admin/AuditLogs";
 import Profile from "./pages/admin/Profile";
+import Notifications from "./pages/admin/Notifications";
 
 // ── Vendor pages ───────────────────────────────────────────────────────────────
 import VendorDashboard from "./pages/vendor/vendorDashboard";
@@ -240,6 +241,12 @@ function App() {
         <Route
           path="/admin/profile"
           element={<AdminLayout><Profile /></AdminLayout>}
+        />
+
+        {/* Admin notifications */}
+        <Route
+          path="/admin/notifications"
+          element={<AdminLayout><Notifications /></AdminLayout>}
         />
 
         {/* ══════════════════════════════════════════
